@@ -87,7 +87,7 @@ public class PacienteController {
     }
     
     @GetMapping("/buscar/especialidade/{especialidadeId}")
-    public ResponseEntity<List<Paciente>> findByEspecialidade(@PathVariable Long especialidadeId) {
+    public ResponseEntity<List<Paciente>> findByEspecialidade(@PathVariable Integer especialidadeId) {
         List<Paciente> pacientes = pacienteService.findByEspecialidade(especialidadeId);
         return ResponseEntity.ok(pacientes);
     }

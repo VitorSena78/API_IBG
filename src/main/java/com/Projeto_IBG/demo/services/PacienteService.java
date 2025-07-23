@@ -110,7 +110,7 @@ public class PacienteService {
         return pacienteRepository.findBySus(sus);
     }
     
-    public List<Paciente> findByEspecialidade(Long especialidadeId) {
+    public List<Paciente> findByEspecialidade(Integer especialidadeId) {
         return pacienteRepository.findByEspecialidadeId(especialidadeId);
     }
     

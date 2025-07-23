@@ -4,9 +4,9 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+import com.Projeto_IBG.demo.dto.sync.SyncStatus;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -32,16 +32,44 @@ public class PacienteEspecialidade {
     @JsonBackReference
     private Especialidade especialidade;
     
-    @JsonFormat(pattern = "yyyy-MM-dd")
     @Column(name = "data_atendimento")
     private LocalDate dataAtendimento;
     
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    @Column(name = "created_at", updatable = false)
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
     
+    @Enumerated(EnumType.STRING)
+    @Column(name = "sync_status")
+    private SyncStatus syncStatus = SyncStatus.PENDING;
+    
+    @Column(name = "device_id")
+    private String deviceId;
+    
+    // Métodos de conveniência para acessar os IDs
+    public Integer getPacienteId() {
+        return id != null ? id.getPacienteId() : null;
+    }
+    
+    public void setPacienteId(Integer pacienteId) {
+        if (id == null) {
+            id = new PacienteEspecialidadeId();
+        }
+        id.setPacienteId(pacienteId);
+    }
+    
+    public Integer getEspecialidadeId() {
+        return id != null ? id.getEspecialidadeId() : null;
+    }
+    
+    public void setEspecialidadeId(Integer especialidadeId) {
+        if (id == null) {
+            id = new PacienteEspecialidadeId();
+        }
+        id.setEspecialidadeId(especialidadeId);
+    }
+    
     @PrePersist
-    public void prePersist() {
+    protected void onCreate() {
         createdAt = LocalDateTime.now();
         if (dataAtendimento == null) {
             dataAtendimento = LocalDate.now();

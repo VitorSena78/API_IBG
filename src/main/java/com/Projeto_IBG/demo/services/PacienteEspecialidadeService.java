@@ -61,11 +61,11 @@ public class PacienteEspecialidadeService {
         pacienteEspecialidadeRepository.deleteById(id);
     }
     
-    public List<PacienteEspecialidade> findByPaciente(Long pacienteId) {
+    public List<PacienteEspecialidade> findByPaciente(Integer pacienteId) {
         return pacienteEspecialidadeRepository.findByPacienteId(pacienteId);
     }
     
-    public List<PacienteEspecialidade> findByEspecialidade(Long especialidadeId) {
+    public List<PacienteEspecialidade> findByEspecialidade(Integer especialidadeId) {
         return pacienteEspecialidadeRepository.findByEspecialidadeId(especialidadeId);
     }
     

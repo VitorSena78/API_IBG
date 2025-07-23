@@ -41,13 +41,13 @@ public class PacienteEspecialidadeController {
     }
     
     @GetMapping("/paciente/{pacienteId}")
-    public ResponseEntity<List<PacienteEspecialidade>> findByPaciente(@PathVariable Long pacienteId) {
+    public ResponseEntity<List<PacienteEspecialidade>> findByPaciente(@PathVariable Integer pacienteId) {
         List<PacienteEspecialidade> atendimentos = pacienteEspecialidadeService.findByPaciente(pacienteId);
         return ResponseEntity.ok(atendimentos);
     }
     
     @GetMapping("/especialidade/{especialidadeId}")
-    public ResponseEntity<List<PacienteEspecialidade>> findByEspecialidade(@PathVariable Long especialidadeId) {
+    public ResponseEntity<List<PacienteEspecialidade>> findByEspecialidade(@PathVariable Integer especialidadeId) {
         List<PacienteEspecialidade> atendimentos = pacienteEspecialidadeService.findByEspecialidade(especialidadeId);
         return ResponseEntity.ok(atendimentos);
     }

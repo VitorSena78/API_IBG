@@ -39,6 +39,15 @@ logging:
     org.hibernate: INFO
     com.saude.api: DEBUG
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: always
+
 # Configuração de CORS personalizada (você ainda precisa configurar o filtro em Java)
 cors:
   allowed-origins: "*"

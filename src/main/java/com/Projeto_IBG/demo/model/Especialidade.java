@@ -22,15 +22,12 @@ public class Especialidade {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     
-    @NotBlank(message = "Nome da especialidade é obrigatório")
-    @Size(max = 45, message = "Nome deve ter no máximo 45 caracteres")
+    @Column(nullable = false, length = 45)
     private String nome;
     
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    @Column(name = "created_at", updatable = false)
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
     
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
     
@@ -39,13 +36,13 @@ public class Especialidade {
     private List<PacienteEspecialidade> pacientes;
     
     @PrePersist
-    public void prePersist() {
+    protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
     }
     
     @PreUpdate
-    public void preUpdate() {
+    protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
 }

@@ -13,6 +13,7 @@ import com.Projeto_IBG.demo.model.Paciente;
 import com.Projeto_IBG.demo.repositories.PacienteRepository;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -120,6 +121,10 @@ public class PacienteService {
     
     public List<Paciente> findByFaixaEtaria(Integer idadeMin, Integer idadeMax) {
         return pacienteRepository.findByIdadeBetween(idadeMin, idadeMax);
+    }
+
+    public List<Paciente> findUpdatedSince(LocalDateTime since) {
+        return pacienteRepository.findUpdatedSince(since);
     }
 }
 

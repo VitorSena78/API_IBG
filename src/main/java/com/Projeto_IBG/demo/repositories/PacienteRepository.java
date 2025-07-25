@@ -42,6 +42,9 @@ public interface PacienteRepository extends JpaRepository<Paciente, Integer> {
     @Query("SELECT p FROM Paciente p WHERE p.syncStatus = :status")
     List<Paciente> findBySyncStatus(@Param("status") SyncStatus status);
 
+    @Query("SELECT p FROM Paciente p WHERE p.createdAt >= :since OR p.updatedAt >= :since ORDER BY p.updatedAt DESC")
+    List<Paciente> findUpdatedSince(@Param("since") LocalDateTime since);
+
     Optional<Paciente> findByLocalIdAndDeviceId(String localId, String deviceId);
 
     // ---- Relacionamentos com Especialidade ----
@@ -53,6 +56,4 @@ public interface PacienteRepository extends JpaRepository<Paciente, Integer> {
 
     @Query("SELECT p FROM Paciente p JOIN p.especialidades pe WHERE pe.dataAtendimento BETWEEN :dataInicio AND :dataFim")
     List<Paciente> findByDataAtendimentoBetween(@Param("dataInicio") LocalDate dataInicio, @Param("dataFim") LocalDate dataFim);
-
-
 }

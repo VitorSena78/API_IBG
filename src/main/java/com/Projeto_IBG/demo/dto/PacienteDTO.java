@@ -5,52 +5,88 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class PacienteDTO {
-    private Integer serverId; // ID do servidor
-    private String localId; // ID temporário do app
+
+    @JsonProperty("server_id")
+    private Integer serverId;
+
+    @JsonProperty("local_id")
+    private String localId;
+
+    @JsonProperty("nome")
     private String nome;
-    
+
+    @JsonProperty("data_nascimento")
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate dataNascimento;
-    
+
+    @JsonProperty("idade")
     private Integer idade;
+
+    @JsonProperty("nome_da_mae")
     private String nomeDaMae;
+
+    @JsonProperty("cpf")
     private String cpf;
+
+    @JsonProperty("sus")
     private String sus;
+
+    @JsonProperty("telefone")
     private String telefone;
+
+    @JsonProperty("endereco")
     private String endereço;
-    private List<Integer> especialidadeIds;
+
+    @JsonProperty("pa_x_mmhg")
     private String paXMmhg;
+
+    @JsonProperty("fc_bpm")
     private Float fcBpm;
+
+    @JsonProperty("fr_ibpm")
     private Float frIbpm;
+
+    @JsonProperty("temperatura_c")
     private Float temperaturaC;
+
+    @JsonProperty("hgt_mgld")
     private Float hgtMgld;
+
+    @JsonProperty("spo2")
     private Float spo2;
+
+    @JsonProperty("peso")
     private Float peso;
+
+    @JsonProperty("altura")
     private Float altura;
+
+    @JsonProperty("imc")
     private Float imc;
+
+    @JsonProperty("sync_status")
     private String syncStatus;
+
+    @JsonProperty("last_sync_timestamp")
     private Long lastSyncTimestamp;
-    
+
+    @JsonProperty("created_at")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
-    
+
+    @JsonProperty("updated_at")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updatedAt;
-   
 
-    public PacienteDTO() {
-    }
+    public PacienteDTO() {}
 
-    // getters e setters
+    // Getters e setters (inalterados)
+
     public Integer getServerId() {
-        return this.serverId;
+        return serverId;
     }
 
     public void setServerId(Integer serverId) {
@@ -58,7 +94,7 @@ public class PacienteDTO {
     }
 
     public String getLocalId() {
-        return this.localId;
+        return localId;
     }
 
     public void setLocalId(String localId) {
@@ -66,7 +102,7 @@ public class PacienteDTO {
     }
 
     public String getNome() {
-        return this.nome;
+        return nome;
     }
 
     public void setNome(String nome) {
@@ -74,7 +110,7 @@ public class PacienteDTO {
     }
 
     public LocalDate getDataNascimento() {
-        return this.dataNascimento;
+        return dataNascimento;
     }
 
     public void setDataNascimento(LocalDate dataNascimento) {
@@ -82,7 +118,7 @@ public class PacienteDTO {
     }
 
     public Integer getIdade() {
-        return this.idade;
+        return idade;
     }
 
     public void setIdade(Integer idade) {
@@ -90,7 +126,7 @@ public class PacienteDTO {
     }
 
     public String getNomeDaMae() {
-        return this.nomeDaMae;
+        return nomeDaMae;
     }
 
     public void setNomeDaMae(String nomeDaMae) {
@@ -98,7 +134,7 @@ public class PacienteDTO {
     }
 
     public String getCpf() {
-        return this.cpf;
+        return cpf;
     }
 
     public void setCpf(String cpf) {
@@ -106,7 +142,7 @@ public class PacienteDTO {
     }
 
     public String getSus() {
-        return this.sus;
+        return sus;
     }
 
     public void setSus(String sus) {
@@ -114,7 +150,7 @@ public class PacienteDTO {
     }
 
     public String getTelefone() {
-        return this.telefone;
+        return telefone;
     }
 
     public void setTelefone(String telefone) {
@@ -122,23 +158,15 @@ public class PacienteDTO {
     }
 
     public String getEndereço() {
-        return this.endereço;
+        return endereço;
     }
 
     public void setEndereço(String endereço) {
         this.endereço = endereço;
     }
 
-    public List<Integer> getEspecialidadeIds() {
-        return this.especialidadeIds;
-    }
-
-    public void setEspecialidadeIds(List<Integer> especialidadeIds) {
-        this.especialidadeIds = especialidadeIds;
-    }
-
     public String getPaXMmhg() {
-        return this.paXMmhg;
+        return paXMmhg;
     }
 
     public void setPaXMmhg(String paXMmhg) {
@@ -146,7 +174,7 @@ public class PacienteDTO {
     }
 
     public Float getFcBpm() {
-        return this.fcBpm;
+        return fcBpm;
     }
 
     public void setFcBpm(Float fcBpm) {
@@ -154,7 +182,7 @@ public class PacienteDTO {
     }
 
     public Float getFrIbpm() {
-        return this.frIbpm;
+        return frIbpm;
     }
 
     public void setFrIbpm(Float frIbpm) {
@@ -162,7 +190,7 @@ public class PacienteDTO {
     }
 
     public Float getTemperaturaC() {
-        return this.temperaturaC;
+        return temperaturaC;
     }
 
     public void setTemperaturaC(Float temperaturaC) {
@@ -170,7 +198,7 @@ public class PacienteDTO {
     }
 
     public Float getHgtMgld() {
-        return this.hgtMgld;
+        return hgtMgld;
     }
 
     public void setHgtMgld(Float hgtMgld) {
@@ -178,7 +206,7 @@ public class PacienteDTO {
     }
 
     public Float getSpo2() {
-        return this.spo2;
+        return spo2;
     }
 
     public void setSpo2(Float spo2) {
@@ -186,7 +214,7 @@ public class PacienteDTO {
     }
 
     public Float getPeso() {
-        return this.peso;
+        return peso;
     }
 
     public void setPeso(Float peso) {
@@ -194,7 +222,7 @@ public class PacienteDTO {
     }
 
     public Float getAltura() {
-        return this.altura;
+        return altura;
     }
 
     public void setAltura(Float altura) {
@@ -202,7 +230,7 @@ public class PacienteDTO {
     }
 
     public Float getImc() {
-        return this.imc;
+        return imc;
     }
 
     public void setImc(Float imc) {
@@ -210,7 +238,7 @@ public class PacienteDTO {
     }
 
     public String getSyncStatus() {
-        return this.syncStatus;
+        return syncStatus;
     }
 
     public void setSyncStatus(String syncStatus) {
@@ -218,7 +246,7 @@ public class PacienteDTO {
     }
 
     public Long getLastSyncTimestamp() {
-        return this.lastSyncTimestamp;
+        return lastSyncTimestamp;
     }
 
     public void setLastSyncTimestamp(Long lastSyncTimestamp) {
@@ -226,7 +254,7 @@ public class PacienteDTO {
     }
 
     public LocalDateTime getCreatedAt() {
-        return this.createdAt;
+        return createdAt;
     }
 
     public void setCreatedAt(LocalDateTime createdAt) {
@@ -234,11 +262,10 @@ public class PacienteDTO {
     }
 
     public LocalDateTime getUpdatedAt() {
-        return this.updatedAt;
+        return updatedAt;
     }
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
-
 }

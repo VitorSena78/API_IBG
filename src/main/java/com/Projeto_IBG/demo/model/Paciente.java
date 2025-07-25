@@ -73,14 +73,20 @@ public class Paciente {
     private Float imc;
     
     @Column(name = "created_at")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime createdAt;
     
     @Column(name = "updated_at")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime updatedAt;
     
     @Enumerated(EnumType.STRING)
     @Column(name = "sync_status")
     private SyncStatus syncStatus = SyncStatus.PENDING;
+    
+    @Column(name = "last_sync_at")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    private LocalDateTime lastSyncAt;
     
     @Column(name = "device_id", length = 100)
     private String deviceId;
@@ -96,11 +102,33 @@ public class Paciente {
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
+        if (syncStatus == null) {
+            syncStatus = SyncStatus.PENDING;
+        }
     }
     
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
+        // Marcar como PENDING quando houver mudanças (exceto quando está sendo sincronizado)
+        if (syncStatus == SyncStatus.SYNCED) {
+            syncStatus = SyncStatus.PENDING;
+        }
     }
     
+    // Método utilitário para marcar como sincronizado
+    public void markAsSynced() {
+        this.syncStatus = SyncStatus.SYNCED;
+        this.lastSyncAt = LocalDateTime.now();
+    }
+    
+    // Método utilitário para verificar se precisa sincronizar
+    public boolean needsSync() {
+        return this.syncStatus == SyncStatus.PENDING || this.syncStatus == SyncStatus.CONFLICT;
+    }
+    
+    // Método utilitário para marcar conflito
+    public void markAsConflict() {
+        this.syncStatus = SyncStatus.CONFLICT;
+    }
 }

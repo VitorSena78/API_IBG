@@ -98,16 +98,6 @@ public class SyncService {
         paciente.setSyncStatus(SyncStatus.SYNCED);
         
         paciente = pacienteRepository.save(paciente);
-        
-        // Salvar especialidades selecionadas
-        for (Integer especialidadeId : pacienteDTO.getEspecialidadeIds()) {
-            PacienteEspecialidade pe = new PacienteEspecialidade();
-            pe.setPacienteId(paciente.getId());
-            pe.setEspecialidadeId(especialidadeId);
-            pe.setDeviceId(deviceId);
-            pe.setSyncStatus(SyncStatus.SYNCED);
-            pacienteEspecialidadeRepository.save(pe);
-        }
     }
     
     private ConflictDTO checkAndUpdatePaciente(PacienteDTO pacienteDTO, String deviceId) {
@@ -268,14 +258,6 @@ public class SyncService {
         dto.setEndereço(paciente.getEndereço());
         dto.setLocalId(paciente.getLocalId());
         dto.setLastSyncTimestamp(paciente.getUpdatedAt().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
-        
-        // Buscar especialidades associadas
-        List<Integer> especialidadeIds = pacienteEspecialidadeRepository
-            .findByPacienteId(paciente.getId())
-            .stream()
-            .map(PacienteEspecialidade::getEspecialidadeId)
-            .collect(Collectors.toList());
-        dto.setEspecialidadeIds(especialidadeIds);
         
         return dto;
     }

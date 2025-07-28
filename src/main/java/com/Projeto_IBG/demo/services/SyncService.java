@@ -13,7 +13,7 @@ import java.time.ZoneId;
 
 import com.Projeto_IBG.demo.dto.ConflictResolutionDTO;
 import com.Projeto_IBG.demo.dto.EspecialidadeDTO;
-import com.Projeto_IBG.demo.dto.EspecialidadeRelationDTO;
+import com.Projeto_IBG.demo.dto.PacienteEspecialidadeDTO;
 import com.Projeto_IBG.demo.dto.PacienteDTO;
 import com.Projeto_IBG.demo.dto.sync.ConflictDTO;
 import com.Projeto_IBG.demo.dto.sync.SyncRequestDTO;
@@ -61,7 +61,7 @@ public class SyncService {
         }
         
         // 1.2 Processar relações de especialidades
-        for (EspecialidadeRelationDTO relationDTO : request.getEspecialidadeRelations()) {
+        for (PacienteEspecialidadeDTO relationDTO : request.getEspecialidadeRelations()) {
             ConflictDTO conflict = processEspecialidadeRelation(relationDTO, request.getDeviceId());
             if (conflict != null) {
                 conflicts.add(conflict);
@@ -126,7 +126,7 @@ public class SyncService {
         return null;
     }
     
-    private ConflictDTO processEspecialidadeRelation(EspecialidadeRelationDTO relationDTO, String deviceId) {
+    private ConflictDTO processEspecialidadeRelation(PacienteEspecialidadeDTO relationDTO, String deviceId) {
         if ("CREATE".equals(relationDTO.getAction())) {
             // Criar nova relação
             return createEspecialidadeRelation(relationDTO, deviceId);
@@ -137,7 +137,7 @@ public class SyncService {
         return null;
     }
     
-    private ConflictDTO createEspecialidadeRelation(EspecialidadeRelationDTO relationDTO, String deviceId) {
+    private ConflictDTO createEspecialidadeRelation(PacienteEspecialidadeDTO relationDTO, String deviceId) {
         // Verificar se o paciente existe
         Integer pacienteId = relationDTO.getPacienteServerId();
         if (pacienteId == null) {
@@ -161,7 +161,7 @@ public class SyncService {
         
         // Verificar se a relação já existe
         Optional<PacienteEspecialidade> existingRelation = pacienteEspecialidadeRepository
-            .findByPacienteIdAndEspecialidadeId(pacienteId, relationDTO.getEspecialidadeId());
+            .findByPacienteIdAndEspecialidadeId(pacienteId, relationDTO.getEspecialidadeServerId());
         
         if (existingRelation.isPresent()) {
             // Relação já existe - não é necessário criar
@@ -171,7 +171,7 @@ public class SyncService {
         // Criar nova relação
         PacienteEspecialidade pe = new PacienteEspecialidade();
         pe.setPacienteId(pacienteId);
-        pe.setEspecialidadeId(relationDTO.getEspecialidadeId());
+        pe.setEspecialidadeId(relationDTO.getEspecialidadeServerId());
         pe.setDeviceId(deviceId);
         pe.setSyncStatus(SyncStatus.SYNCED);
         
@@ -180,11 +180,11 @@ public class SyncService {
         return null;
     }
     
-    private ConflictDTO deleteEspecialidadeRelation(EspecialidadeRelationDTO relationDTO, String deviceId) {
+    private ConflictDTO deleteEspecialidadeRelation(PacienteEspecialidadeDTO relationDTO, String deviceId) {
         // Apenas aplicativos desktop podem remover relações
         // Apps mobile não têm permissão para isso
         return new ConflictDTO(
-            relationDTO.getServerRelationId(),
+            relationDTO.getServerPacienteEspecialidadeId(),
             "ESPECIALIDADE_RELATION",
             null,
             relationDTO,

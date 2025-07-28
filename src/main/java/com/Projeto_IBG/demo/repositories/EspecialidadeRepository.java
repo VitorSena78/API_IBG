@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import com.Projeto_IBG.demo.model.Especialidade;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,4 +31,7 @@ public interface EspecialidadeRepository extends JpaRepository<Especialidade, In
     // Contar pacientes por especialidade
     @Query("SELECT COUNT(pe) FROM PacienteEspecialidade pe WHERE pe.especialidade.id = :especialidadeId")
     Long countPacientesByEspecialidadeId(@Param("especialidadeId") Integer especialidadeId);
+
+    @Query("SELECT e FROM Especialidade e WHERE e.createdAt >= :since OR e.updatedAt >= :since ORDER BY e.updatedAt DESC")
+    List<Especialidade> findByCreatedAtOrUpdatedAtAfter(@Param("since") LocalDateTime since);
 }

@@ -10,6 +10,9 @@ import com.Projeto_IBG.demo.exception.ResourceNotFoundException;
 import com.Projeto_IBG.demo.model.Especialidade;
 import com.Projeto_IBG.demo.repositories.EspecialidadeRepository;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 @Service
@@ -64,5 +67,18 @@ public class EspecialidadeService {
     
     public List<Especialidade> findEspecialidadesComPacientes() {
         return especialidadeRepository.findEspecialidadesComPacientes();
+    }
+
+    public List<Especialidade> findUpdatedSince(LocalDateTime since) {
+        return especialidadeRepository.findByCreatedAtOrUpdatedAtAfter(since);
+    }
+    
+    // Método auxiliar para converter timestamp para LocalDateTime
+    public List<Especialidade> findUpdatedSince(long timestampMillis) {
+        LocalDateTime since = LocalDateTime.ofInstant(
+            Instant.ofEpochMilli(timestampMillis), 
+            ZoneId.systemDefault()
+        );
+        return findUpdatedSince(since);
     }
 }

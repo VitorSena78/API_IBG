@@ -4,14 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.Projeto_IBG.demo.dto.EspecialidadeDTO;
-import com.Projeto_IBG.demo.dto.EspecialidadeRelationDTO;
+import com.Projeto_IBG.demo.dto.PacienteEspecialidadeDTO;
 import com.Projeto_IBG.demo.dto.PacienteDTO;
 
 public class SyncRequestDTO {
     private String deviceId;
     private Long lastSyncTimestamp;
     private List<PacienteDTO> pacientes = new ArrayList<>();
-    private List<EspecialidadeRelationDTO> especialidadeRelations = new ArrayList<>();
+    private List<PacienteEspecialidadeDTO> especialidadeRelations = new ArrayList<>();
     
     // Construtores
 
@@ -19,7 +19,7 @@ public class SyncRequestDTO {
     }
 
 
-    public SyncRequestDTO(String deviceId, Long lastSyncTimestamp, List<PacienteDTO> pacientes, List<EspecialidadeRelationDTO> especialidadeRelations) {
+    public SyncRequestDTO(String deviceId, Long lastSyncTimestamp, List<PacienteDTO> pacientes, List<PacienteEspecialidadeDTO> especialidadeRelations) {
         this.deviceId = deviceId;
         this.lastSyncTimestamp = lastSyncTimestamp;
         this.pacientes = pacientes;
@@ -53,11 +53,11 @@ public class SyncRequestDTO {
         this.pacientes = pacientes;
     }
 
-    public List<EspecialidadeRelationDTO> getEspecialidadeRelations() {
+    public List<PacienteEspecialidadeDTO> getEspecialidadeRelations() {
         return this.especialidadeRelations;
     }
 
-    public void setEspecialidadeRelations(List<EspecialidadeRelationDTO> especialidadeRelations) {
+    public void setEspecialidadeRelations(List<PacienteEspecialidadeDTO> especialidadeRelations) {
         this.especialidadeRelations = especialidadeRelations;
     }
     

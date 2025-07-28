@@ -161,4 +161,31 @@ public class EspecialidadeController {
                 .body(ApiResponse.error("Erro interno do servidor", e.getMessage()));
         }
     }
+
+    @GetMapping("/updated")
+    public ResponseEntity<ApiResponse<List<Especialidade>>> findUpdatedEspecialidades(
+            @RequestParam("since") long timestamp) {
+        try {
+            if (timestamp <= 0) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.error("Timestamp inválido", "O timestamp deve ser maior que 0"));
+            }
+            
+            List<Especialidade> especialidades = especialidadeService.findUpdatedSince(timestamp);
+            
+            if (especialidades.isEmpty()) {
+                return ResponseEntity.ok(
+                    ApiResponse.success(especialidades, "Nenhuma especialidade encontrada após o timestamp fornecido")
+                );
+            }
+            
+            return ResponseEntity.ok(
+                ApiResponse.success(especialidades, 
+                    String.format("Encontradas %d especialidades atualizadas", especialidades.size()))
+            );
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.error("Erro interno do servidor", e.getMessage()));
+        }
+    }
 }

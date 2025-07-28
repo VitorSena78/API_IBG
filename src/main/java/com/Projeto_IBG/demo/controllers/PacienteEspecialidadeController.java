@@ -6,14 +6,18 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.Projeto_IBG.demo.dto.PacienteEspecialidadeDTO;
 import com.Projeto_IBG.demo.model.PacienteEspecialidade;
 import com.Projeto_IBG.demo.services.PacienteEspecialidadeService;
 
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/atendimentos")
+@RequestMapping("/api/pacientes_has_especialidades")
 @CrossOrigin(origins = "*")
 public class PacienteEspecialidadeController {
     
@@ -68,5 +72,21 @@ public class PacienteEspecialidadeController {
     public ResponseEntity<List<Object[]>> getRelatorioAtendimentosPorMes() {
         List<Object[]> relatorio = pacienteEspecialidadeService.getRelatorioAtendimentosPorMes();
         return ResponseEntity.ok(relatorio);
+    }
+
+    @GetMapping("/pacientes/especialidades/updated")
+    public ResponseEntity<List<PacienteEspecialidadeDTO>> getUpdatedPacienteEspecialidades(
+            @RequestParam("since") Long timestamp) {
+        
+        // Converte o timestamp para LocalDateTime
+        LocalDateTime since = LocalDateTime.ofInstant(
+            Instant.ofEpochMilli(timestamp), 
+            ZoneId.systemDefault()
+        );
+        
+        List<PacienteEspecialidadeDTO> updatedRecords = 
+            pacienteEspecialidadeService.findUpdatedSince(since);
+        
+        return ResponseEntity.ok(updatedRecords);
     }
 }

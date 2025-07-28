@@ -10,6 +10,7 @@ import com.Projeto_IBG.demo.model.PacienteEspecialidade;
 import com.Projeto_IBG.demo.model.PacienteEspecialidadeId;
 import jakarta.transaction.Transactional;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -53,4 +54,8 @@ public interface PacienteEspecialidadeRepository extends JpaRepository<PacienteE
     @Transactional
     @Query("DELETE FROM PacienteEspecialidade pe WHERE pe.id.pacienteId = :pacienteId")
     void deleteByPacienteId(@Param("pacienteId") Integer pacienteId);
+
+    @Query("SELECT pe FROM PacienteEspecialidade pe WHERE pe.updatedAt > :since ORDER BY pe.updatedAt ASC")
+    List<PacienteEspecialidade> findUpdatedSince(@Param("since") LocalDateTime since);
+
 }

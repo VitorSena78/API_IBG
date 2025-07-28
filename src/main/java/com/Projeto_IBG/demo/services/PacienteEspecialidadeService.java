@@ -5,13 +5,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.Projeto_IBG.demo.dto.PacienteEspecialidadeDTO;
 import com.Projeto_IBG.demo.exception.ResourceNotFoundException;
+import com.Projeto_IBG.demo.mappers.PacienteEspecialidadeMapper;
 import com.Projeto_IBG.demo.model.PacienteEspecialidade;
 import com.Projeto_IBG.demo.model.PacienteEspecialidadeId;
 import com.Projeto_IBG.demo.repositories.PacienteEspecialidadeRepository;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -26,6 +30,9 @@ public class PacienteEspecialidadeService {
     @Autowired
     private EspecialidadeService especialidadeService;
     
+    @Autowired
+private PacienteEspecialidadeMapper mapper;
+
     public List<PacienteEspecialidade> findAll() {
         return pacienteEspecialidadeRepository.findAll();
     }
@@ -79,5 +86,17 @@ public class PacienteEspecialidadeService {
     
     public List<Object[]> getRelatorioAtendimentosPorMes() {
         return pacienteEspecialidadeRepository.findAtendimentosPorMes();
+    }
+
+    public List<PacienteEspecialidadeDTO> findUpdatedSince(LocalDateTime since) {
+        List<PacienteEspecialidade> entities = pacienteEspecialidadeRepository.findUpdatedSince(since);
+        
+        return entities.stream()
+            .map(this::convertToDTO)
+            .collect(Collectors.toList());
+    }
+
+    private PacienteEspecialidadeDTO convertToDTO(PacienteEspecialidade entity) {
+        return mapper.toDTO(entity);
     }
 }

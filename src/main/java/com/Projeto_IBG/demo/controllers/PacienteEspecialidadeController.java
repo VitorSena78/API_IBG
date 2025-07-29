@@ -46,6 +46,13 @@ public class PacienteEspecialidadeController {
         pacienteEspecialidadeService.delete(pacienteId, especialidadeId);
         return ResponseEntity.noContent().build();
     }
+
+    @DeleteMapping("/pacientes/{pacienteId}/especialidades/{especialidadeId}")
+    public ResponseEntity<Void> deleteByPathVariables(@PathVariable Integer pacienteId, 
+                                                    @PathVariable Integer especialidadeId) {
+        pacienteEspecialidadeService.delete(pacienteId, especialidadeId);
+        return ResponseEntity.noContent().build();
+    }
     
     @GetMapping("/paciente/{pacienteId}")
     public ResponseEntity<List<PacienteEspecialidade>> findByPaciente(@PathVariable Integer pacienteId) {
@@ -100,21 +107,48 @@ public class PacienteEspecialidadeController {
     }
 
     @PostMapping("/pacientes/especialidades/sync")
-    public ResponseEntity<ApiResponse<List<PacienteEspecialidadeDTO>>> syncPacienteEspecialidades(
-            @RequestBody List<PacienteEspecialidadeDTO> syncData) {
-        try {
-            List<PacienteEspecialidadeDTO> processedRecords = new ArrayList<>();
-            
-            for (PacienteEspecialidadeDTO data : syncData) {
-                try {
-                    // Usar o método save existente que já verifica paciente e especialidade
+public ResponseEntity<ApiResponse<List<PacienteEspecialidadeDTO>>> syncPacienteEspecialidades(
+        @RequestBody List<PacienteEspecialidadeDTO> syncData) {
+    try {
+        List<PacienteEspecialidadeDTO> processedRecords = new ArrayList<>();
+        
+        for (PacienteEspecialidadeDTO data : syncData) {
+            try {
+                // VERIFICAR SE É DELEÇÃO
+                if (data.getIsDeleted() != null && data.getIsDeleted()) {
+                    // PROCESSAR DELEÇÃO
+                    System.out.println("Processando DELEÇÃO: Paciente " + data.getPacienteServerId() + 
+                                     " - Especialidade " + data.getEspecialidadeServerId());
+                    
+                    // Deletar o relacionamento
+                    pacienteEspecialidadeService.delete(
+                        data.getPacienteServerId(), 
+                        data.getEspecialidadeServerId()
+                    );
+                    
+                    // Retornar confirmação de deleção
+                    PacienteEspecialidadeDTO deletedDto = new PacienteEspecialidadeDTO(
+                        data.getPacienteServerId(),
+                        data.getEspecialidadeServerId(),
+                        data.getDataAtendimento(),
+                        true, // isDeleted = true
+                        LocalDateTime.now(), // updatedAt
+                        data.getCreatedAt()
+                    );
+                    
+                    processedRecords.add(deletedDto);
+                    
+                } else {
+                    // PROCESSAR CRIAÇÃO/ATUALIZAÇÃO (código existente)
+                    System.out.println("Processando CRIAÇÃO: Paciente " + data.getPacienteServerId() + 
+                                     " - Especialidade " + data.getEspecialidadeServerId());
+                    
                     PacienteEspecialidade saved = pacienteEspecialidadeService.save(
                         data.getPacienteServerId(), 
                         data.getEspecialidadeServerId(), 
                         data.getDataAtendimento()
                     );
                     
-                    // Converter para DTO usando o seu DTO existente
                     PacienteEspecialidadeDTO dto = new PacienteEspecialidadeDTO(
                         saved.getId().getPacienteId(),
                         saved.getId().getEspecialidadeId(),
@@ -125,24 +159,24 @@ public class PacienteEspecialidadeController {
                     );
                     
                     processedRecords.add(dto);
-                    
-                } catch (Exception e) {
-                    // Log do erro específico para este registro
-                    System.err.println("Erro ao processar registro: " + data.toString() + " - " + e.getMessage());
-                    // Continue processando os outros registros
                 }
+                
+            } catch (Exception e) {
+                System.err.println("Erro ao processar registro: " + data.toString() + " - " + e.getMessage());
+                e.printStackTrace();
+                // Continue processando os outros registros
             }
-            
-            // retorna o formato padronizado ApiResponse
-            return ResponseEntity.ok(
-                ApiResponse.success(processedRecords, "Sincronização processada com sucesso")
-            );
-            
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.error("Erro interno ao sincronizar relacionamentos: " + e.getMessage()));
         }
+        
+        return ResponseEntity.ok(
+            ApiResponse.success(processedRecords, "Sincronização processada com sucesso")
+        );
+        
+    } catch (Exception e) {
+        e.printStackTrace();
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+            .body(ApiResponse.error("Erro interno ao sincronizar relacionamentos: " + e.getMessage()));
     }
+}
 
 }

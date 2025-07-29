@@ -3,21 +3,45 @@ package com.Projeto_IBG.demo.dto;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class PacienteEspecialidadeDTO {
+    
+    @JsonProperty("paciente_local_id")
     private String pacienteLocalId;
+    
+    @JsonProperty("paciente_server_id")
     private Integer pacienteServerId;
+    
+    @JsonProperty("especialidade_server_id")
     private Integer especialidadeServerId;
+    
+    @JsonProperty("especialidade_local_id")
     private String especialidadeLocalId;
+    
     private String localPacienteEspecialidadeId;
     private Integer serverPacienteEspecialidadeId;
+    
+    @JsonProperty("data_atendimento")
     private LocalDate dataAtendimento;
+    
     private Boolean isDeleted; // Para soft delete
+    
+    @JsonProperty("updated_at")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updatedAt;
+    
+    @JsonProperty("created_at")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
+    
     private String action; // "CREATE", "DELETE"
+    
+    @JsonProperty("last_sync_timestamp")
     private Long lastSyncTimestamp;
 
-
+    // Construtores existentes (manter todos)
     public PacienteEspecialidadeDTO() {
     }
     
@@ -39,7 +63,6 @@ public class PacienteEspecialidadeDTO {
         this.lastSyncTimestamp = lastSyncTimestamp;
     }
 
-
     public PacienteEspecialidadeDTO(Integer pacienteServerId, Integer especialidadeServerId, LocalDate dataAtendimento,
             Boolean isDeleted, LocalDateTime updatedAt, LocalDateTime createdAt) {
         this.pacienteServerId = pacienteServerId;
@@ -50,9 +73,7 @@ public class PacienteEspecialidadeDTO {
         this.createdAt = createdAt;
     }
 
-
-    // getters e setters
-
+    // Todos os getters e setters existentes (manter todos)
     public String getPacienteLocalId() {
         return this.pacienteLocalId;
     }
@@ -109,56 +130,43 @@ public class PacienteEspecialidadeDTO {
         this.lastSyncTimestamp = lastSyncTimestamp;
     }
 
-
     public String getEspecialidadeLocalId() {
         return especialidadeLocalId;
     }
-
 
     public void setEspecialidadeLocalId(String especialidadeLocalId) {
         this.especialidadeLocalId = especialidadeLocalId;
     }
 
-
     public LocalDate getDataAtendimento() {
         return dataAtendimento;
     }
-
 
     public void setDataAtendimento(LocalDate dataAtendimento) {
         this.dataAtendimento = dataAtendimento;
     }
 
-
     public Boolean getIsDeleted() {
         return isDeleted;
     }
-
 
     public void setIsDeleted(Boolean isDeleted) {
         this.isDeleted = isDeleted;
     }
 
-
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
     }
-
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
 
-
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
-
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
-
-    
-
 }

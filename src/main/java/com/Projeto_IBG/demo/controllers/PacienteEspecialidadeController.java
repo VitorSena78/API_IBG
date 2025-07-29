@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.Projeto_IBG.demo.dto.ApiResponse;
 import com.Projeto_IBG.demo.dto.PacienteEspecialidadeDTO;
 import com.Projeto_IBG.demo.model.PacienteEspecialidade;
 import com.Projeto_IBG.demo.services.PacienteEspecialidadeService;
@@ -14,7 +15,9 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/pacientes_has_especialidades")
@@ -75,18 +78,71 @@ public class PacienteEspecialidadeController {
     }
 
     @GetMapping("/pacientes/especialidades/updated")
-    public ResponseEntity<List<PacienteEspecialidadeDTO>> getUpdatedPacienteEspecialidades(
+    public ResponseEntity<ApiResponse<List<PacienteEspecialidadeDTO>>> getUpdatedPacienteEspecialidades(
             @RequestParam("since") Long timestamp) {
-        
-        // Converte o timestamp para LocalDateTime
-        LocalDateTime since = LocalDateTime.ofInstant(
-            Instant.ofEpochMilli(timestamp), 
-            ZoneId.systemDefault()
-        );
-        
-        List<PacienteEspecialidadeDTO> updatedRecords = 
-            pacienteEspecialidadeService.findUpdatedSince(since);
-        
-        return ResponseEntity.ok(updatedRecords);
+        try {
+            // Converte o timestamp para LocalDateTime
+            LocalDateTime since = LocalDateTime.ofInstant(
+                Instant.ofEpochMilli(timestamp), 
+                ZoneId.systemDefault()
+            );
+            
+            List<PacienteEspecialidadeDTO> updatedRecords = 
+                pacienteEspecialidadeService.findUpdatedSince(since);
+            
+            return ResponseEntity.ok(
+                ApiResponse.success(updatedRecords, "Relacionamentos atualizados recuperados com sucesso")
+            );
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.error("Erro ao buscar relacionamentos atualizados: " + e.getMessage()));
+        }
     }
+
+    @PostMapping("/pacientes/especialidades/sync")
+    public ResponseEntity<ApiResponse<List<PacienteEspecialidadeDTO>>> syncPacienteEspecialidades(
+            @RequestBody List<PacienteEspecialidadeDTO> syncData) {
+        try {
+            List<PacienteEspecialidadeDTO> processedRecords = new ArrayList<>();
+            
+            for (PacienteEspecialidadeDTO data : syncData) {
+                try {
+                    // Usar o método save existente que já verifica paciente e especialidade
+                    PacienteEspecialidade saved = pacienteEspecialidadeService.save(
+                        data.getPacienteServerId(), 
+                        data.getEspecialidadeServerId(), 
+                        data.getDataAtendimento()
+                    );
+                    
+                    // Converter para DTO usando o seu DTO existente
+                    PacienteEspecialidadeDTO dto = new PacienteEspecialidadeDTO(
+                        saved.getId().getPacienteId(),
+                        saved.getId().getEspecialidadeId(),
+                        saved.getDataAtendimento(),
+                        false, // isDeleted
+                        saved.getUpdatedAt(),
+                        saved.getCreatedAt()
+                    );
+                    
+                    processedRecords.add(dto);
+                    
+                } catch (Exception e) {
+                    // Log do erro específico para este registro
+                    System.err.println("Erro ao processar registro: " + data.toString() + " - " + e.getMessage());
+                    // Continue processando os outros registros
+                }
+            }
+            
+            // retorna o formato padronizado ApiResponse
+            return ResponseEntity.ok(
+                ApiResponse.success(processedRecords, "Sincronização processada com sucesso")
+            );
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.error("Erro interno ao sincronizar relacionamentos: " + e.getMessage()));
+        }
+    }
+
 }

@@ -5,11 +5,10 @@ import jakarta.validation.constraints.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
-
 import com.Projeto_IBG.demo.dto.sync.SyncStatus;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -65,11 +64,8 @@ public class Paciente {
     private Float hgtMgld;
     
     private Float spo2;
-    
     private Float peso;
-    
     private Float altura;
-    
     private Float imc;
     
     @Column(name = "created_at")
@@ -94,8 +90,10 @@ public class Paciente {
     @Column(name = "local_id", length = 100)
     private String localId;
     
+    // CORREÇÃO: Nome único para a referência
     @OneToMany(mappedBy = "paciente", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JsonManagedReference
+    @JsonManagedReference("paciente-especialidades")  // ← NOME CORRESPONDENTE
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private List<PacienteEspecialidade> especialidades;
     
     @PrePersist

@@ -9,6 +9,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.Projeto_IBG.demo.dto.ApiResponse;
+import com.Projeto_IBG.demo.dto.PacienteDTO;
+import com.Projeto_IBG.demo.mappers.PacienteMapper;
 import com.Projeto_IBG.demo.model.Paciente;
 import com.Projeto_IBG.demo.services.PacienteService;
 
@@ -18,6 +20,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/pacientes")
@@ -26,6 +29,9 @@ public class PacienteController {
     
     @Autowired
     private PacienteService pacienteService;
+    
+    @Autowired
+    private PacienteMapper pacienteMapper;
     
     @GetMapping
     public ResponseEntity<Page<Paciente>> findAll(Pageable pageable) {
@@ -72,32 +78,35 @@ public class PacienteController {
         }
     }
 
-    // ENDPOINT PRINCIPAL QUE ESTAVA CAUSANDO O ERRO
     @GetMapping("/updated")
-    public ResponseEntity<ApiResponse<List<Paciente>>> findUpdatedPacientes(@RequestParam Long since) {
-        try {
-            // Converter timestamp (milissegundos) para LocalDateTime
-            LocalDateTime sinceDateTime = LocalDateTime.ofInstant(
-                Instant.ofEpochMilli(since), 
-                ZoneId.systemDefault()
-            );
-            
-            List<Paciente> pacientes = pacienteService.findUpdatedSince(sinceDateTime);
-            
-            if (pacientes.isEmpty()) {
-                return ResponseEntity.ok(
-                    ApiResponse.success(pacientes, "Nenhum paciente atualizado encontrado desde " + sinceDateTime)
-                );
-            }
-            
+public ResponseEntity<ApiResponse<List<PacienteDTO>>> findUpdatedPacientes(@RequestParam Long since) {
+    try {
+        LocalDateTime sinceDateTime = LocalDateTime.ofInstant(
+            Instant.ofEpochMilli(since), 
+            ZoneId.systemDefault()
+        );
+        
+        List<Paciente> pacientes = pacienteService.findUpdatedSince(sinceDateTime);
+        
+        // Usa o mapper
+        List<PacienteDTO> pacientesDTO = pacientes.stream()
+            .map(pacienteMapper::toDTO)
+            .collect(Collectors.toList());
+        
+        if (pacientesDTO.isEmpty()) {
             return ResponseEntity.ok(
-                ApiResponse.success(pacientes, pacientes.size() + " pacientes atualizados encontrados")
+                ApiResponse.success(pacientesDTO, "Nenhum paciente atualizado encontrado desde " + sinceDateTime)
             );
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.error("Erro ao buscar pacientes atualizados", e.getMessage()));
         }
+        
+        return ResponseEntity.ok(
+            ApiResponse.success(pacientesDTO, pacientesDTO.size() + " pacientes atualizados encontrados")
+        );
+    } catch (Exception e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+            .body(ApiResponse.error("Erro ao buscar pacientes atualizados", e.getMessage()));
     }
+}
     
     @PostMapping
     public ResponseEntity<ApiResponse<Paciente>> create(@Valid @RequestBody Paciente paciente) {
@@ -113,8 +122,11 @@ public class PacienteController {
     }
     
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<Paciente>> update(@PathVariable Integer id, @Valid @RequestBody Paciente paciente) {
+    public ResponseEntity<ApiResponse<Paciente>> update(@PathVariable Integer id, @Valid @RequestBody PacienteDTO pacienteDTO) {
         try {
+            // Usar o mapper para converter DTO em entidade
+            Paciente paciente = pacienteMapper.toEntity(pacienteDTO);
+            
             Paciente pacienteAtualizado = pacienteService.update(id, paciente);
             
             if (pacienteAtualizado == null) {
@@ -283,6 +295,30 @@ public class PacienteController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiResponse.error("Erro interno do servidor", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/batch")
+    public ResponseEntity<ApiResponse<List<Paciente>>> createBatch(@Valid @RequestBody List<PacienteDTO> pacientesDTO) {
+        try {
+            if (pacientesDTO == null || pacientesDTO.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.error("Lista de pacientes não pode estar vazia", ""));
+            }
+
+            // Usar o mapper para converter DTOs em entidades
+            List<Paciente> pacientes = pacientesDTO.stream()
+                .map(pacienteMapper::toEntity)
+                .collect(Collectors.toList());
+
+            List<Paciente> pacientesSalvos = pacienteService.saveBatch(pacientes);
+            
+            return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success(pacientesSalvos, 
+                    pacientesSalvos.size() + " pacientes criados com sucesso"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.error("Erro ao criar pacientes em lote", e.getMessage()));
         }
     }
 }

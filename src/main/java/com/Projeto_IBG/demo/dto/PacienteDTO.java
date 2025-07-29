@@ -37,8 +37,8 @@ public class PacienteDTO {
     @JsonProperty("telefone")
     private String telefone;
 
-    @JsonProperty("endereco")
-    private String endereço;
+    @JsonProperty("endereço")
+    private String endereco;
 
     @JsonProperty("pa_x_mmhg")
     private String paXMmhg;
@@ -157,12 +157,12 @@ public class PacienteDTO {
         this.telefone = telefone;
     }
 
-    public String getEndereço() {
-        return endereço;
+    public String getEndereco() {
+        return endereco;
     }
 
-    public void setEndereço(String endereço) {
-        this.endereço = endereço;
+    public void setEndereco(String endereco) {
+        this.endereco = endereco;
     }
 
     public String getPaXMmhg() {

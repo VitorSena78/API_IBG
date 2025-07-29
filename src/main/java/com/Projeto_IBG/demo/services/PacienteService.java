@@ -14,6 +14,7 @@ import com.Projeto_IBG.demo.repositories.PacienteRepository;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -126,5 +127,42 @@ public class PacienteService {
     public List<Paciente> findUpdatedSince(LocalDateTime since) {
         return pacienteRepository.findUpdatedSince(since);
     }
+
+    public List<Paciente> saveBatch(List<Paciente> pacientes) {
+        try {
+            // Validar e processar cada paciente
+            for (Paciente paciente : pacientes) {
+                // Definir timestamps
+                paciente.setCreatedAt(LocalDateTime.now());
+                paciente.setUpdatedAt(LocalDateTime.now());
+            }
+            
+            return pacienteRepository.saveAll(pacientes);
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao salvar pacientes em lote: " + e.getMessage(), e);
+        }
+    }
+
+    public List<Paciente> updateBatch(List<Paciente> pacientes) {
+        try {
+            List<Paciente> pacientesParaAtualizar = new ArrayList<>();
+            
+            for (Paciente paciente : pacientes) {
+                // Verificar se existe
+                if (paciente.getId() != null) {
+                    Optional<Paciente> existente = pacienteRepository.findById(paciente.getId());
+                    if (existente.isPresent()) {
+                        paciente.setUpdatedAt(LocalDateTime.now());
+                        pacientesParaAtualizar.add(paciente);
+                    }
+                }
+            }
+            
+            return pacienteRepository.saveAll(pacientesParaAtualizar);
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao atualizar pacientes em lote: " + e.getMessage(), e);
+        }
+    }
+    
 }
 

@@ -16,7 +16,6 @@ public interface PacienteEspecialidadeMapper {
     @Mapping(target = "pacienteLocalId", expression = "java(null)")
     @Mapping(source = "especialidadeId", target = "especialidadeServerId")
     @Mapping(target = "especialidadeLocalId", expression = "java(null)")
-    @Mapping(source = "syncStatus", target = "action", qualifiedByName = "syncStatusToString")
     @Mapping(source = "updatedAt", target = "lastSyncTimestamp", qualifiedByName = "dateTimeToTimestamp")
     @Mapping(target = "localPacienteEspecialidadeId", ignore = true)
     @Mapping(target = "serverPacienteEspecialidadeId", ignore = true)

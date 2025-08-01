@@ -172,8 +172,6 @@ public class SyncService {
         PacienteEspecialidade pe = new PacienteEspecialidade();
         pe.setPacienteId(pacienteId);
         pe.setEspecialidadeId(relationDTO.getEspecialidadeServerId());
-        pe.setDeviceId(deviceId);
-        pe.setSyncStatus(SyncStatus.SYNCED);
         
         pacienteEspecialidadeRepository.save(pe);
         

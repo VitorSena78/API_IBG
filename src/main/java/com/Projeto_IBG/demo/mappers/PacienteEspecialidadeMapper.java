@@ -12,14 +12,15 @@ import com.Projeto_IBG.demo.model.PacienteEspecialidade;
 @Mapper(componentModel = "spring")
 public interface PacienteEspecialidadeMapper {
 
-    @Mapping(source = "pacienteId", target = "pacienteServerId")
-    @Mapping(target = "pacienteLocalId", expression = "java(null)")
-    @Mapping(source = "especialidadeId", target = "especialidadeServerId")
-    @Mapping(target = "especialidadeLocalId", expression = "java(null)")
+    @Mapping(target = "pacienteServerId", expression = "java(entity.getPacienteId())")
+    @Mapping(target = "especialidadeServerId", expression = "java(entity.getEspecialidadeId())")
+    @Mapping(target = "pacienteLocalId", constant = "null")
+    @Mapping(target = "especialidadeLocalId", constant = "null")
     @Mapping(source = "updatedAt", target = "lastSyncTimestamp", qualifiedByName = "dateTimeToTimestamp")
     @Mapping(target = "localPacienteEspecialidadeId", ignore = true)
     @Mapping(target = "serverPacienteEspecialidadeId", ignore = true)
     @Mapping(target = "isDeleted", constant = "false")
+    @Mapping(target = "action", ignore = true)
     PacienteEspecialidadeDTO toDTO(PacienteEspecialidade entity);
 
     @Named("syncStatusToString")

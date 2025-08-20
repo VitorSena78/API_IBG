@@ -1,11 +1,11 @@
 package com.Projeto_IBG.demo.model;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
-import com.fasterxml.jackson.annotation.JsonFormat;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import java.time.LocalDateTime;
@@ -45,6 +45,7 @@ public class Especialidade {
     private LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "especialidade", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
     @JsonManagedReference("especialidade-pacientes")
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private List<PacienteEspecialidade> pacientes;

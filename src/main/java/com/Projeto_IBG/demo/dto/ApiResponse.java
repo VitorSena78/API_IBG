@@ -2,6 +2,7 @@ package com.Projeto_IBG.demo.dto;
 
 import java.time.LocalDateTime;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Classe para padronizar todas as respostas da API
@@ -9,11 +10,19 @@ import com.fasterxml.jackson.annotation.JsonFormat;
  */
 public class ApiResponse<T> {
     
+    @JsonProperty("success")
     private boolean success;
+    
+    @JsonProperty("data")
     private T data;
+    
+    @JsonProperty("message")
     private String message;
+    
+    @JsonProperty("error")
     private String error;
     
+    @JsonProperty("timestamp")
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime timestamp;
     

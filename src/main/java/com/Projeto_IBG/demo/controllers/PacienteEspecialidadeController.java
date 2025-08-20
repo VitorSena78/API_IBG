@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 import com.Projeto_IBG.demo.dto.ApiResponse;
 import com.Projeto_IBG.demo.dto.PacienteEspecialidadeDTO;
+import com.Projeto_IBG.demo.mappers.PacienteEspecialidadeMapper;
 import com.Projeto_IBG.demo.model.PacienteEspecialidade;
 import com.Projeto_IBG.demo.services.PacienteEspecialidadeService;
 
@@ -17,28 +18,51 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/pacientes_has_especialidades")
+@RequestMapping("/api/paciente_has_especialidade")
 @CrossOrigin(origins = "*")
 public class PacienteEspecialidadeController {
     
     @Autowired
     private PacienteEspecialidadeService pacienteEspecialidadeService;
     
+    @Autowired
+    private PacienteEspecialidadeMapper mapper;
+
     @GetMapping
-    public ResponseEntity<List<PacienteEspecialidade>> findAll() {
-        List<PacienteEspecialidade> atendimentos = pacienteEspecialidadeService.findAll();
-        return ResponseEntity.ok(atendimentos);
+    public ResponseEntity<ApiResponse<List<PacienteEspecialidadeDTO>>> findAll() {
+        try {
+            List<PacienteEspecialidade> entities = pacienteEspecialidadeService.findAll();
+            List<PacienteEspecialidadeDTO> dtos = entities.stream()
+                .map(mapper::toDTO)
+                .collect(Collectors.toList());
+            
+            return ResponseEntity.ok(
+                ApiResponse.success(dtos, "Associações encontradas com sucesso")
+            );
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.error("Erro ao buscar associações: " + e.getMessage()));
+        }
     }
     
     @PostMapping
-    public ResponseEntity<PacienteEspecialidade> create(@RequestParam Integer pacienteId, 
-                                                        @RequestParam Integer especialidadeId,
-                                                        @RequestParam(required = false) LocalDate dataAtendimento) {
-        PacienteEspecialidade atendimento = pacienteEspecialidadeService.save(pacienteId, especialidadeId, dataAtendimento);
-        return ResponseEntity.status(HttpStatus.CREATED).body(atendimento);
+    public ResponseEntity<ApiResponse<PacienteEspecialidadeDTO>> create(
+            @RequestParam Integer pacienteId, 
+            @RequestParam Integer especialidadeId,
+            @RequestParam(required = false) LocalDate dataAtendimento) {
+        try {
+            PacienteEspecialidade atendimento = pacienteEspecialidadeService.save(pacienteId, especialidadeId, dataAtendimento);
+            PacienteEspecialidadeDTO dto = mapper.toDTO(atendimento);
+            
+            return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success(dto, "Associação criada com sucesso"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error("Erro ao criar associação", e.getMessage()));
+        }
     }
     
     @DeleteMapping
@@ -55,21 +79,64 @@ public class PacienteEspecialidadeController {
     }
     
     @GetMapping("/paciente/{pacienteId}")
-    public ResponseEntity<List<PacienteEspecialidade>> findByPaciente(@PathVariable Integer pacienteId) {
-        List<PacienteEspecialidade> atendimentos = pacienteEspecialidadeService.findByPaciente(pacienteId);
-        return ResponseEntity.ok(atendimentos);
+    public ResponseEntity<ApiResponse<List<PacienteEspecialidadeDTO>>> findByPaciente(@PathVariable Integer pacienteId) {
+        try {
+            List<PacienteEspecialidade> entities = pacienteEspecialidadeService.findByPaciente(pacienteId);
+            List<PacienteEspecialidadeDTO> dtos = entities.stream()
+                .map(mapper::toDTO)
+                .collect(Collectors.toList());
+            
+            return ResponseEntity.ok(ApiResponse.success(dtos));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.error("Erro: " + e.getMessage()));
+        }
     }
     
     @GetMapping("/especialidade/{especialidadeId}")
-    public ResponseEntity<List<PacienteEspecialidade>> findByEspecialidade(@PathVariable Integer especialidadeId) {
-        List<PacienteEspecialidade> atendimentos = pacienteEspecialidadeService.findByEspecialidade(especialidadeId);
-        return ResponseEntity.ok(atendimentos);
+    public ResponseEntity<ApiResponse<List<PacienteEspecialidadeDTO>>> findByEspecialidade(@PathVariable Integer especialidadeId) {
+        try {
+            List<PacienteEspecialidade> entities = pacienteEspecialidadeService.findByEspecialidade(especialidadeId);
+            List<PacienteEspecialidadeDTO> dtos = entities.stream()
+                .map(mapper::toDTO)
+                .collect(Collectors.toList());
+            
+            if (dtos.isEmpty()) {
+                return ResponseEntity.ok(
+                    ApiResponse.success(dtos, "Nenhuma associação encontrada para a especialidade ID: " + especialidadeId)
+                );
+            }
+            
+            return ResponseEntity.ok(
+                ApiResponse.success(dtos, "Associações da especialidade encontradas com sucesso")
+            );
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.error("Erro ao buscar associações da especialidade", e.getMessage()));
+        }
     }
     
     @GetMapping("/data-atendimento")
-    public ResponseEntity<List<PacienteEspecialidade>> findByDataAtendimento(@RequestParam LocalDate dataAtendimento) {
-        List<PacienteEspecialidade> atendimentos = pacienteEspecialidadeService.findByDataAtendimento(dataAtendimento);
-        return ResponseEntity.ok(atendimentos);
+    public ResponseEntity<ApiResponse<List<PacienteEspecialidadeDTO>>> findByDataAtendimento(@RequestParam LocalDate dataAtendimento) {
+        try {
+            List<PacienteEspecialidade> entities = pacienteEspecialidadeService.findByDataAtendimento(dataAtendimento);
+            List<PacienteEspecialidadeDTO> dtos = entities.stream()
+                .map(mapper::toDTO)
+                .collect(Collectors.toList());
+            
+            if (dtos.isEmpty()) {
+                return ResponseEntity.ok(
+                    ApiResponse.success(dtos, "Nenhum atendimento encontrado para a data: " + dataAtendimento)
+                );
+            }
+            
+            return ResponseEntity.ok(
+                ApiResponse.success(dtos, "Atendimentos encontrados por data")
+            );
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.error("Erro ao buscar atendimentos por data", e.getMessage()));
+        }
     }
     
     @GetMapping("/relatorio/por-especialidade")
@@ -107,76 +174,76 @@ public class PacienteEspecialidadeController {
     }
 
     @PostMapping("/pacientes/especialidades/sync")
-public ResponseEntity<ApiResponse<List<PacienteEspecialidadeDTO>>> syncPacienteEspecialidades(
-        @RequestBody List<PacienteEspecialidadeDTO> syncData) {
-    try {
-        List<PacienteEspecialidadeDTO> processedRecords = new ArrayList<>();
-        
-        for (PacienteEspecialidadeDTO data : syncData) {
-            try {
-                // VERIFICAR SE É DELEÇÃO
-                if (data.getIsDeleted() != null && data.getIsDeleted()) {
-                    // PROCESSAR DELEÇÃO
-                    System.out.println("Processando DELEÇÃO: Paciente " + data.getPacienteServerId() + 
-                                     " - Especialidade " + data.getEspecialidadeServerId());
+    public ResponseEntity<ApiResponse<List<PacienteEspecialidadeDTO>>> syncPacienteEspecialidades(
+            @RequestBody List<PacienteEspecialidadeDTO> syncData) {
+        try {
+            List<PacienteEspecialidadeDTO> processedRecords = new ArrayList<>();
+            
+            for (PacienteEspecialidadeDTO data : syncData) {
+                try {
+                    // VERIFICAR SE É DELEÇÃO
+                    if (data.getIsDeleted() != null && data.getIsDeleted()) {
+                        // PROCESSAR DELEÇÃO
+                        System.out.println("Processando DELEÇÃO: Paciente " + data.getPacienteServerId() + 
+                                        " - Especialidade " + data.getEspecialidadeServerId());
+                        
+                        // Deletar o relacionamento
+                        pacienteEspecialidadeService.delete(
+                            data.getPacienteServerId(), 
+                            data.getEspecialidadeServerId()
+                        );
+                        
+                        // Retornar confirmação de deleção
+                        PacienteEspecialidadeDTO deletedDto = new PacienteEspecialidadeDTO(
+                            data.getPacienteServerId(),
+                            data.getEspecialidadeServerId(),
+                            data.getDataAtendimento(),
+                            true, // isDeleted = true
+                            LocalDateTime.now(), // updatedAt
+                            data.getCreatedAt()
+                        );
+                        
+                        processedRecords.add(deletedDto);
+                        
+                    } else {
+                        // PROCESSAR CRIAÇÃO/ATUALIZAÇÃO (código existente)
+                        System.out.println("Processando CRIAÇÃO: Paciente " + data.getPacienteServerId() + 
+                                        " - Especialidade " + data.getEspecialidadeServerId());
+                        
+                        PacienteEspecialidade saved = pacienteEspecialidadeService.save(
+                            data.getPacienteServerId(), 
+                            data.getEspecialidadeServerId(), 
+                            data.getDataAtendimento()
+                        );
+                        
+                        PacienteEspecialidadeDTO dto = new PacienteEspecialidadeDTO(
+                            saved.getId().getPacienteId(),
+                            saved.getId().getEspecialidadeId(),
+                            saved.getDataAtendimento(),
+                            false, // isDeleted
+                            saved.getUpdatedAt(),
+                            saved.getCreatedAt()
+                        );
+                        
+                        processedRecords.add(dto);
+                    }
                     
-                    // Deletar o relacionamento
-                    pacienteEspecialidadeService.delete(
-                        data.getPacienteServerId(), 
-                        data.getEspecialidadeServerId()
-                    );
-                    
-                    // Retornar confirmação de deleção
-                    PacienteEspecialidadeDTO deletedDto = new PacienteEspecialidadeDTO(
-                        data.getPacienteServerId(),
-                        data.getEspecialidadeServerId(),
-                        data.getDataAtendimento(),
-                        true, // isDeleted = true
-                        LocalDateTime.now(), // updatedAt
-                        data.getCreatedAt()
-                    );
-                    
-                    processedRecords.add(deletedDto);
-                    
-                } else {
-                    // PROCESSAR CRIAÇÃO/ATUALIZAÇÃO (código existente)
-                    System.out.println("Processando CRIAÇÃO: Paciente " + data.getPacienteServerId() + 
-                                     " - Especialidade " + data.getEspecialidadeServerId());
-                    
-                    PacienteEspecialidade saved = pacienteEspecialidadeService.save(
-                        data.getPacienteServerId(), 
-                        data.getEspecialidadeServerId(), 
-                        data.getDataAtendimento()
-                    );
-                    
-                    PacienteEspecialidadeDTO dto = new PacienteEspecialidadeDTO(
-                        saved.getId().getPacienteId(),
-                        saved.getId().getEspecialidadeId(),
-                        saved.getDataAtendimento(),
-                        false, // isDeleted
-                        saved.getUpdatedAt(),
-                        saved.getCreatedAt()
-                    );
-                    
-                    processedRecords.add(dto);
+                } catch (Exception e) {
+                    System.err.println("Erro ao processar registro: " + data.toString() + " - " + e.getMessage());
+                    e.printStackTrace();
+                    // Continue processando os outros registros
                 }
-                
-            } catch (Exception e) {
-                System.err.println("Erro ao processar registro: " + data.toString() + " - " + e.getMessage());
-                e.printStackTrace();
-                // Continue processando os outros registros
             }
+            
+            return ResponseEntity.ok(
+                ApiResponse.success(processedRecords, "Sincronização processada com sucesso")
+            );
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.error("Erro interno ao sincronizar relacionamentos: " + e.getMessage()));
         }
-        
-        return ResponseEntity.ok(
-            ApiResponse.success(processedRecords, "Sincronização processada com sucesso")
-        );
-        
-    } catch (Exception e) {
-        e.printStackTrace();
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .body(ApiResponse.error("Erro interno ao sincronizar relacionamentos: " + e.getMessage()));
     }
-}
 
 }

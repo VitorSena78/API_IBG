@@ -1,12 +1,12 @@
 package com.Projeto_IBG.demo.model;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import com.Projeto_IBG.demo.dto.sync.SyncStatus;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.time.LocalDate;
@@ -92,6 +92,7 @@ public class Paciente {
     
     // CORREÇÃO: Nome único para a referência
     @OneToMany(mappedBy = "paciente", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
     @JsonManagedReference("paciente-especialidades")  // ← NOME CORRESPONDENTE
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private List<PacienteEspecialidade> especialidades;

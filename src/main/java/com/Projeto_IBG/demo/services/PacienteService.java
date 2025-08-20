@@ -163,6 +163,10 @@ public class PacienteService {
             throw new RuntimeException("Erro ao atualizar pacientes em lote: " + e.getMessage(), e);
         }
     }
+
+    public long count() {
+        return pacienteRepository.count();
+    }
     
 }
 

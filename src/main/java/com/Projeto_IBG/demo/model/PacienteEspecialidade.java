@@ -18,27 +18,27 @@ public class PacienteEspecialidade {
 
     @EmbeddedId
     private PacienteEspecialidadeId id;
-
+    
     @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("pacienteId")
     @JoinColumn(name = "Paciente_id")
-    @JsonBackReference("paciente-especialidades")
+    @JsonBackReference("paciente-especialidades") 
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Paciente paciente;
-
+    
     @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("especialidadeId")
     @JoinColumn(name = "Especialidade_id")
-    @JsonBackReference("especialidade-pacientes")
+    @JsonBackReference("especialidade-pacientes") 
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Especialidade especialidade;
-
+    
     @Column(name = "data_atendimento")
     private LocalDate dataAtendimento;
-
+    
     @Column(name = "created_at")
     private LocalDateTime createdAt;
-
+    
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 

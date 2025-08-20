@@ -2,8 +2,6 @@ package com.Projeto_IBG.demo.dto;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 

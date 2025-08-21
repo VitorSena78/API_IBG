@@ -10,6 +10,7 @@ import com.Projeto_IBG.demo.dto.ApiResponse;
 import com.Projeto_IBG.demo.dto.PacienteEspecialidadeDTO;
 import com.Projeto_IBG.demo.mappers.PacienteEspecialidadeMapper;
 import com.Projeto_IBG.demo.model.PacienteEspecialidade;
+import com.Projeto_IBG.demo.repositories.PacienteEspecialidadeRepository;
 import com.Projeto_IBG.demo.services.PacienteEspecialidadeService;
 
 import java.time.Instant;
@@ -30,6 +31,9 @@ public class PacienteEspecialidadeController {
     
     @Autowired
     private PacienteEspecialidadeMapper mapper;
+
+    @Autowired
+    private PacienteEspecialidadeRepository pacienteEspecialidadeRepository;
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<PacienteEspecialidadeDTO>>> findAll() {
@@ -76,6 +80,26 @@ public class PacienteEspecialidadeController {
                                                     @PathVariable Integer especialidadeId) {
         pacienteEspecialidadeService.delete(pacienteId, especialidadeId);
         return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/paciente/{pacienteId}")
+    public ResponseEntity<ApiResponse<String>> deleteAllByPacienteId(@PathVariable Integer pacienteId) {
+        try {
+            // Buscar todas as associações do paciente antes de deletar para contar
+            List<PacienteEspecialidade> associacoes = pacienteEspecialidadeService.findByPaciente(pacienteId);
+            int count = associacoes.size();
+            
+            // Usar o método do repository que já existe
+            pacienteEspecialidadeRepository.deleteByPacienteId(pacienteId);
+            
+            return ResponseEntity.ok(
+                ApiResponse.success("Associações removidas", 
+                    "Removidas " + count + " associações do paciente ID: " + pacienteId)
+            );
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.error("Erro ao remover associações do paciente: " + e.getMessage()));
+        }
     }
     
     @GetMapping("/paciente/{pacienteId}")
@@ -243,6 +267,41 @@ public class PacienteEspecialidadeController {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiResponse.error("Erro interno ao sincronizar relacionamentos: " + e.getMessage()));
+        }
+    }
+
+    @PostMapping("/batch")
+    public ResponseEntity<ApiResponse<List<PacienteEspecialidadeDTO>>> createBatch(
+            @RequestBody List<PacienteEspecialidadeDTO> pacienteEspecialidadeDTOs) {
+        try {
+            List<PacienteEspecialidadeDTO> savedAssociacoes = new ArrayList<>();
+            
+            for (PacienteEspecialidadeDTO dto : pacienteEspecialidadeDTOs) {
+                try {
+                    // Usar o método save que já existe no service
+                    PacienteEspecialidade saved = pacienteEspecialidadeService.save(
+                        dto.getPacienteId() != null ? dto.getPacienteId() : dto.getPacienteServerId(),
+                        dto.getEspecialidadeId() != null ? dto.getEspecialidadeId() : dto.getEspecialidadeServerId(),
+                        dto.getDataAtendimento()
+                    );
+                    
+                    // Converter de volta para DTO usando o mapper existente
+                    PacienteEspecialidadeDTO savedDTO = mapper.toDTO(saved);
+                    savedAssociacoes.add(savedDTO);
+                    
+                } catch (Exception e) {
+                    System.err.println("Erro ao processar associação: " + dto.toString() + " - " + e.getMessage());
+                    // Continue processando as outras associações
+                }
+            }
+            
+            return ResponseEntity.ok(
+                ApiResponse.success(savedAssociacoes, 
+                    "Criadas " + savedAssociacoes.size() + " de " + pacienteEspecialidadeDTOs.size() + " associações")
+            );
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.error("Erro ao criar associações em lote: " + e.getMessage()));
         }
     }
 

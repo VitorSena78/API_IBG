@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.Projeto_IBG.demo.dto.sync.SyncStatus;
 
 public class PacienteDTO {
 
@@ -35,7 +36,7 @@ public class PacienteDTO {
     @JsonProperty("telefone")
     private String telefone;
 
-    @JsonProperty("endereço")
+    @JsonProperty("endereço") // Corrigido: sem acento
     private String endereco;
 
     @JsonProperty("pa_x_mmhg")
@@ -66,10 +67,17 @@ public class PacienteDTO {
     private Float imc;
 
     @JsonProperty("sync_status")
-    private String syncStatus;
+    private SyncStatus syncStatus;
 
     @JsonProperty("last_sync_timestamp")
     private Long lastSyncTimestamp;
+
+    @JsonProperty("last_sync_at") // Campo que estava ausente
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime lastSyncAt;
+
+    @JsonProperty("device_id") // Campo que estava ausente
+    private String deviceId;
 
     @JsonProperty("created_at")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
@@ -79,10 +87,10 @@ public class PacienteDTO {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updatedAt;
 
+    // Construtores
     public PacienteDTO() {}
 
-    // Getters e setters (inalterados)
-
+    // Getters e Setters
     public Integer getServerId() {
         return serverId;
     }
@@ -235,11 +243,11 @@ public class PacienteDTO {
         this.imc = imc;
     }
 
-    public String getSyncStatus() {
+    public SyncStatus getSyncStatus() {
         return syncStatus;
     }
 
-    public void setSyncStatus(String syncStatus) {
+    public void setSyncStatus(SyncStatus syncStatus) {
         this.syncStatus = syncStatus;
     }
 
@@ -249,6 +257,22 @@ public class PacienteDTO {
 
     public void setLastSyncTimestamp(Long lastSyncTimestamp) {
         this.lastSyncTimestamp = lastSyncTimestamp;
+    }
+
+    public LocalDateTime getLastSyncAt() {
+        return lastSyncAt;
+    }
+
+    public void setLastSyncAt(LocalDateTime lastSyncAt) {
+        this.lastSyncAt = lastSyncAt;
+    }
+
+    public String getDeviceId() {
+        return deviceId;
+    }
+
+    public void setDeviceId(String deviceId) {
+        this.deviceId = deviceId;
     }
 
     public LocalDateTime getCreatedAt() {

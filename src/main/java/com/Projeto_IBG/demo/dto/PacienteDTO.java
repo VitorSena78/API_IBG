@@ -4,8 +4,12 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.Projeto_IBG.demo.dto.sync.SyncStatus;
+import java.util.List;
 
+// CORREÇÃO PRINCIPAL: Adicionar @JsonIgnoreProperties para ignorar campos desconhecidos
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class PacienteDTO {
 
     @JsonProperty("server_id")
@@ -36,7 +40,7 @@ public class PacienteDTO {
     @JsonProperty("telefone")
     private String telefone;
 
-    @JsonProperty("endereço") // Corrigido: sem acento
+    @JsonProperty("endereço")
     private String endereco;
 
     @JsonProperty("pa_x_mmhg")
@@ -72,11 +76,11 @@ public class PacienteDTO {
     @JsonProperty("last_sync_timestamp")
     private Long lastSyncTimestamp;
 
-    @JsonProperty("last_sync_at") // Campo que estava ausente
+    @JsonProperty("last_sync_at")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime lastSyncAt;
 
-    @JsonProperty("device_id") // Campo que estava ausente
+    @JsonProperty("device_id")
     private String deviceId;
 
     @JsonProperty("created_at")
@@ -87,10 +91,12 @@ public class PacienteDTO {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updatedAt;
 
+    @JsonProperty("especialidades")
+    private List<Object> especialidades; // Tipo genérico para ignorar o conteúdo
+
     // Construtores
     public PacienteDTO() {}
 
-    // Getters e Setters
     public Integer getServerId() {
         return serverId;
     }
@@ -289,5 +295,14 @@ public class PacienteDTO {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    // Getter/Setter para especialidades
+    public List<Object> getEspecialidades() {
+        return especialidades;
+    }
+
+    public void setEspecialidades(List<Object> especialidades) {
+        this.especialidades = especialidades;
     }
 }

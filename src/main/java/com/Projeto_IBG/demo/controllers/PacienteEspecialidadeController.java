@@ -12,13 +12,16 @@ import com.Projeto_IBG.demo.mappers.PacienteEspecialidadeMapper;
 import com.Projeto_IBG.demo.model.PacienteEspecialidade;
 import com.Projeto_IBG.demo.repositories.PacienteEspecialidadeRepository;
 import com.Projeto_IBG.demo.services.PacienteEspecialidadeService;
+import com.Projeto_IBG.demo.websocket.NotificationWebSocketHandler;
 
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @RestController
@@ -34,6 +37,9 @@ public class PacienteEspecialidadeController {
 
     @Autowired
     private PacienteEspecialidadeRepository pacienteEspecialidadeRepository;
+
+    @Autowired
+    private NotificationWebSocketHandler webSocketHandler;
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<PacienteEspecialidadeDTO>>> findAll() {
@@ -88,12 +94,15 @@ public class PacienteEspecialidadeController {
             // Buscar todas as associações do paciente antes de deletar para contar
             List<PacienteEspecialidade> associacoes = pacienteEspecialidadeService.findByPaciente(pacienteId);
             int count = associacoes.size();
-            
+
             // Usar o método do repository que já existe
             pacienteEspecialidadeRepository.deleteByPacienteId(pacienteId);
-            
+
+            // Notificar deleção
+            webSocketHandler.notifyPacienteEspecialidadeDeletedBatch(pacienteId);
+
             return ResponseEntity.ok(
-                ApiResponse.success("Associações removidas", 
+                ApiResponse.success("Associações removidas",
                     "Removidas " + count + " associações do paciente ID: " + pacienteId)
             );
         } catch (Exception e) {
@@ -271,35 +280,91 @@ public class PacienteEspecialidadeController {
     }
 
     @PostMapping("/batch")
-    public ResponseEntity<ApiResponse<List<PacienteEspecialidadeDTO>>> createBatch(
-            @RequestBody List<PacienteEspecialidadeDTO> pacienteEspecialidadeDTOs) {
+    public ResponseEntity<ApiResponse<List<PacienteEspecialidadeDTO>>> createBatch(@RequestBody List<PacienteEspecialidadeDTO> pacienteEspecialidadeDTOs) {
         try {
-            List<PacienteEspecialidadeDTO> savedAssociacoes = new ArrayList<>();
+            System.out.println("=== BATCH CREATE DEBUG ===");
+            System.out.println("Recebidos " + pacienteEspecialidadeDTOs.size() + " itens");
             
-            for (PacienteEspecialidadeDTO dto : pacienteEspecialidadeDTOs) {
+            List<PacienteEspecialidadeDTO> savedAssociacoes = new ArrayList<>();
+            Set<Integer> pacientesAfetados = new HashSet<>();
+            
+            for (int i = 0; i < pacienteEspecialidadeDTOs.size(); i++) {
+                PacienteEspecialidadeDTO dto = pacienteEspecialidadeDTOs.get(i);
+                
                 try {
-                    // Usar o método save que já existe no service
+                    System.out.println("Processando item " + (i+1) + ": " + dto.toString());
+                    
+                    // Determinar IDs corretos - aceitar ambos os formatos
+                    Integer pacienteId = null;
+                    Integer especialidadeId = null;
+                    
+                    // Priorizar os campos *_id, depois os *_server_id
+                    if (dto.getPacienteId() != null) {
+                        pacienteId = dto.getPacienteId();
+                    } else if (dto.getPacienteServerId() != null) {
+                        pacienteId = dto.getPacienteServerId();
+                    }
+                    
+                    if (dto.getEspecialidadeId() != null) {
+                        especialidadeId = dto.getEspecialidadeId();
+                    } else if (dto.getEspecialidadeServerId() != null) {
+                        especialidadeId = dto.getEspecialidadeServerId();
+                    }
+                    
+                    if (pacienteId == null || especialidadeId == null) {
+                        System.err.println("IDs inválidos - pacienteId: " + pacienteId + 
+                                        ", especialidadeId: " + especialidadeId);
+                        continue;
+                    }
+                    
+                    System.out.println("Salvando: Paciente " + pacienteId + " - Especialidade " + especialidadeId);
+                    
+                    // Salvar usando o service existente
                     PacienteEspecialidade saved = pacienteEspecialidadeService.save(
-                        dto.getPacienteId() != null ? dto.getPacienteId() : dto.getPacienteServerId(),
-                        dto.getEspecialidadeId() != null ? dto.getEspecialidadeId() : dto.getEspecialidadeServerId(),
+                        pacienteId,
+                        especialidadeId,
                         dto.getDataAtendimento()
                     );
                     
-                    // Converter de volta para DTO usando o mapper existente
+                    // Converter de volta para DTO
                     PacienteEspecialidadeDTO savedDTO = mapper.toDTO(saved);
                     savedAssociacoes.add(savedDTO);
                     
+                    // Marcar paciente afetado
+                    pacientesAfetados.add(saved.getPaciente().getId());
+                    
+                    System.out.println("Salvo com sucesso: " + savedDTO.toString());
+                    
                 } catch (Exception e) {
-                    System.err.println("Erro ao processar associação: " + dto.toString() + " - " + e.getMessage());
-                    // Continue processando as outras associações
+                    System.err.println("Erro ao processar item " + (i+1) + ": " + e.getMessage());
+                    e.printStackTrace();
+                    // Continue processando os outros itens
                 }
             }
             
+            // Notificar para cada paciente afetado
+            for (Integer pacienteId : pacientesAfetados) {
+                try {
+                    // Filtra a lista completa para pegar apenas as associações do paciente atual
+                    List<PacienteEspecialidadeDTO> associacoesDoPaciente = savedAssociacoes.stream().filter(a -> a.getPacienteId().equals(pacienteId) || a.getPacienteServerId().equals(pacienteId)).collect(Collectors.toList());
+                    webSocketHandler.notifyPacienteEspecialidadeCreated(pacienteId, associacoesDoPaciente);
+                    System.out.println("Notificação enviada para paciente: " + pacienteId);
+                } catch (Exception e) {
+                    System.err.println("Erro ao enviar notificação para paciente " + pacienteId + ": " + e.getMessage());
+                }
+            }
+            
+            System.out.println("=== BATCH CREATE CONCLUÍDO ===");
+            System.out.println("Salvos: " + savedAssociacoes.size() + " de " + pacienteEspecialidadeDTOs.size());
+            
             return ResponseEntity.ok(
-                ApiResponse.success(savedAssociacoes, 
+                ApiResponse.success(savedAssociacoes,
                     "Criadas " + savedAssociacoes.size() + " de " + pacienteEspecialidadeDTOs.size() + " associações")
             );
+            
         } catch (Exception e) {
+            System.err.println("Erro geral no batch create: " + e.getMessage());
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiResponse.error("Erro ao criar associações em lote: " + e.getMessage()));
         }

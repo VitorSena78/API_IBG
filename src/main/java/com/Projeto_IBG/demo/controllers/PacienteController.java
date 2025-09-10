@@ -13,6 +13,7 @@ import com.Projeto_IBG.demo.dto.PacienteDTO;
 import com.Projeto_IBG.demo.mappers.PacienteMapper;
 import com.Projeto_IBG.demo.model.Paciente;
 import com.Projeto_IBG.demo.services.PacienteService;
+import com.Projeto_IBG.demo.websocket.NotificationWebSocketHandler;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -32,6 +33,9 @@ public class PacienteController {
     
     @Autowired
     private PacienteMapper pacienteMapper;
+
+    @Autowired
+    private NotificationWebSocketHandler webSocketHandler;
     
     // Endpoint paginado - convertendo para DTO
     @GetMapping
@@ -144,6 +148,9 @@ public class PacienteController {
             
             PacienteDTO novoDTO = pacienteMapper.toDTO(novoPaciente);
             
+            // Notificação WebSocket para criação
+            webSocketHandler.notifyPacienteChange("CREATED", novoPaciente.getId(), novoDTO);
+            
             return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(novoDTO, "Paciente criado com sucesso"));
         } catch (Exception e) {
@@ -165,6 +172,14 @@ public class PacienteController {
             
             PacienteDTO pacienteDTO_result = pacienteMapper.toDTO(pacienteAtualizado);
             
+            // Notificação WebSocket para atualização
+            try {
+                webSocketHandler.notifyPacienteChange("UPDATED", id, pacienteDTO_result);
+            } catch (Exception notificationError) {
+                // Log do erro mas não falha a operação principal
+                System.err.println("Erro ao enviar notificação WebSocket: " + notificationError.getMessage());
+            }
+
             return ResponseEntity.ok(
                 ApiResponse.success(pacienteDTO_result, "Paciente atualizado com sucesso")
             );
@@ -183,7 +198,13 @@ public class PacienteController {
                     .body(ApiResponse.error("Paciente não encontrado para exclusão", "ID: " + id));
             }
             
+            // Salvar dados antes de deletar para a notificação
+            PacienteDTO pacienteDTO = pacienteMapper.toDTO(paciente);
+            
             pacienteService.delete(id);
+            
+            // Notificação WebSocket para exclusão
+            webSocketHandler.notifyPacienteChange("DELETED", id, pacienteDTO);
             
             return ResponseEntity.ok(
                 ApiResponse.success("Paciente deletado com sucesso")

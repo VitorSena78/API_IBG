@@ -92,7 +92,7 @@ public class SyncService {
         paciente.setCpf(pacienteDTO.getCpf());
         paciente.setSus(pacienteDTO.getSus());
         paciente.setTelefone(pacienteDTO.getTelefone());
-        paciente.setEndereço(pacienteDTO.getEndereco());
+        paciente.setEndereco(pacienteDTO.getEndereco());
         paciente.setDeviceId(deviceId);
         paciente.setLocalId(pacienteDTO.getLocalId());
         paciente.setSyncStatus(SyncStatus.SYNCED);
@@ -199,7 +199,7 @@ public class SyncService {
         paciente.setCpf(pacienteDTO.getCpf());
         paciente.setSus(pacienteDTO.getSus());
         paciente.setTelefone(pacienteDTO.getTelefone());
-        paciente.setEndereço(pacienteDTO.getEndereco());
+        paciente.setEndereco(pacienteDTO.getEndereco());
         paciente.setSyncStatus(SyncStatus.SYNCED);
         paciente.setUpdatedAt(LocalDateTime.now());
         
@@ -253,7 +253,7 @@ public class SyncService {
         dto.setCpf(paciente.getCpf());
         dto.setSus(paciente.getSus());
         dto.setTelefone(paciente.getTelefone());
-        dto.setEndereco(paciente.getEndereço());
+        dto.setEndereco(paciente.getEndereco());
         dto.setLocalId(paciente.getLocalId());
         dto.setLastSyncTimestamp(paciente.getUpdatedAt().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
         

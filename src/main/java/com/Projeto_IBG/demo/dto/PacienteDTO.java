@@ -105,6 +105,15 @@ public class PacienteDTO {
         this.serverId = serverId;
     }
 
+    @JsonProperty("id")
+    public Integer getId() {
+        return serverId;
+    }
+
+    public void setId(Integer id) {
+        this.serverId = id;
+    }
+
     public String getLocalId() {
         return localId;
     }

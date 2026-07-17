@@ -32,7 +32,7 @@ public class EspecialidadeService {
     }
     
     public Especialidade save(Especialidade especialidade) {
-        if (especialidadeRepository.existsByNome(especialidade.getNome())) {
+        if (especialidade.getNome() != null && especialidadeRepository.existsByNome(especialidade.getNome())) {
             throw new BusinessException("Especialidade já cadastrada: " + especialidade.getNome());
         }
         return especialidadeRepository.save(especialidade);
@@ -41,12 +41,18 @@ public class EspecialidadeService {
     public Especialidade update(Integer id, Especialidade especialidadeAtualizada) {
         Especialidade especialidadeExistente = findById(id);
         
-        if (!especialidadeAtualizada.getNome().equals(especialidadeExistente.getNome()) &&
-            especialidadeRepository.existsByNome(especialidadeAtualizada.getNome())) {
-            throw new BusinessException("Especialidade já cadastrada: " + especialidadeAtualizada.getNome());
+        String nome = especialidadeAtualizada.getNome();
+        if (nome != null && !nome.equals(especialidadeExistente.getNome()) &&
+            especialidadeRepository.existsByNome(nome)) {
+            throw new BusinessException("Especialidade já cadastrada: " + nome);
         }
         
-        especialidadeExistente.setNome(especialidadeAtualizada.getNome());
+        if (nome != null)
+            especialidadeExistente.setNome(nome);
+        if (especialidadeAtualizada.getFichas() != null)
+            especialidadeExistente.setFichas(especialidadeAtualizada.getFichas());
+        if (especialidadeAtualizada.getTriagemObrigatoria() != null)
+            especialidadeExistente.setTriagemObrigatoria(especialidadeAtualizada.getTriagemObrigatoria());
         return especialidadeRepository.save(especialidadeExistente);
     }
     

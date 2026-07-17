@@ -76,15 +76,7 @@ public class PacienteService {
         pacienteExistente.setCpf(pacienteAtualizado.getCpf());
         pacienteExistente.setSus(pacienteAtualizado.getSus());
         pacienteExistente.setTelefone(pacienteAtualizado.getTelefone());
-        pacienteExistente.setEndereço(pacienteAtualizado.getEndereço());
-        pacienteExistente.setPaXMmhg(pacienteAtualizado.getPaXMmhg());
-        pacienteExistente.setFcBpm(pacienteAtualizado.getFcBpm());
-        pacienteExistente.setFrIbpm(pacienteAtualizado.getFrIbpm());
-        pacienteExistente.setTemperaturaC(pacienteAtualizado.getTemperaturaC());
-        pacienteExistente.setHgtMgld(pacienteAtualizado.getHgtMgld());
-        pacienteExistente.setSpo2(pacienteAtualizado.getSpo2());
-        pacienteExistente.setPeso(pacienteAtualizado.getPeso());
-        pacienteExistente.setAltura(pacienteAtualizado.getAltura());
+        pacienteExistente.setEndereco(pacienteAtualizado.getEndereco());
         
         return pacienteRepository.save(pacienteExistente);
     }

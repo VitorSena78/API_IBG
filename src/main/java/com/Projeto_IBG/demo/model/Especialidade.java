@@ -14,7 +14,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
-@Table(name = "Especialidade")
+@Table(name = "especialidades")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -22,6 +22,7 @@ public class Especialidade {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(columnDefinition = "INTEGER UNSIGNED")
     private Integer id;
 
     @Column(nullable = false, length = 45)
@@ -35,6 +36,9 @@ public class Especialidade {
 
     @Column(name = "atendimentos_totais_hoje", columnDefinition = "INT UNSIGNED DEFAULT 0")
     private Integer atendimentosTotaisHoje = 0;
+
+    @Column(name = "triagem_obrigatoria", nullable = false)
+    private Boolean triagemObrigatoria = true;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     @CreationTimestamp
@@ -60,6 +64,7 @@ public class Especialidade {
         if (fichas == null) fichas = 0;
         if (atendimentosRestantesHoje == null) atendimentosRestantesHoje = 0;
         if (atendimentosTotaisHoje == null) atendimentosTotaisHoje = 0;
+        if (triagemObrigatoria == null) triagemObrigatoria = true;
     }
 
     @PreUpdate

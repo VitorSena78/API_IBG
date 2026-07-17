@@ -29,6 +29,9 @@ public class EspecialidadeDTO {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updatedAt;
 
+    @JsonProperty("triagemObrigatoria")
+    private Boolean triagemObrigatoria;
+
     // Construtores
     public EspecialidadeDTO() {}
 
@@ -103,5 +106,13 @@ public class EspecialidadeDTO {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public Boolean getTriagemObrigatoria() {
+        return triagemObrigatoria;
+    }
+
+    public void setTriagemObrigatoria(Boolean triagemObrigatoria) {
+        this.triagemObrigatoria = triagemObrigatoria;
     }
 }

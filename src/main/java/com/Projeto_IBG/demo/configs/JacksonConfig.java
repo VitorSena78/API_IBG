@@ -1,5 +1,6 @@
 package com.Projeto_IBG.demo.configs;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -20,6 +21,9 @@ public class JacksonConfig {
         
         // Configurar para não usar timestamps para datas
         mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        
+        // Ignorar propriedades desconhecidas na deserialização
+        mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         
         // Outras configurações úteis
         mapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);

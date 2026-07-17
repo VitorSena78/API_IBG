@@ -12,16 +12,10 @@ import com.Projeto_IBG.demo.model.Paciente;
 @Mapper(componentModel = "spring")
 public interface PacienteMapper {
 
-    // DTO para Entity
-    @Mapping(source = "serverId", target = "id")
-    @Mapping(source = "endereco", target = "endereço")
-    @Mapping(source = "syncStatus", target = "syncStatus", qualifiedByName = "stringToSyncStatus")
-    @Mapping(target = "especialidades", ignore = true) // Ignora o mapeamento das especialidades
+    @Mapping(target = "especialidades", ignore = true)
     Paciente toEntity(PacienteDTO dto);
 
-    // Entity para DTO
     @Mapping(source = "id", target = "serverId")
-    @Mapping(source = "endereço", target = "endereco")
     @Mapping(source = "syncStatus", target = "syncStatus", qualifiedByName = "syncStatusToString")
     @Mapping(source = "updatedAt", target = "lastSyncTimestamp", qualifiedByName = "dateTimeToTimestamp")
     PacienteDTO toDTO(Paciente entity);

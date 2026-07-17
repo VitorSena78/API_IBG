@@ -10,7 +10,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "Paciente_has_Especialidade")
+@Table(name = "paciente_has_especialidade")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -21,14 +21,14 @@ public class PacienteEspecialidade {
     
     @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("pacienteId")
-    @JoinColumn(name = "Paciente_id")
+    @JoinColumn(name = "paciente_id")
     @JsonBackReference("paciente-especialidades") 
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Paciente paciente;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("especialidadeId")
-    @JoinColumn(name = "Especialidade_id")
+    @JoinColumn(name = "especialidade_id")
     @JsonBackReference("especialidade-pacientes") 
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Especialidade especialidade;

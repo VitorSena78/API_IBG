@@ -15,10 +15,10 @@ import java.util.Objects;
 @AllArgsConstructor
 public class PacienteEspecialidadeId implements Serializable {
     
-    @Column(name = "Paciente_id")
+    @Column(name = "paciente_id", columnDefinition = "INTEGER UNSIGNED")
     private Integer pacienteId;
     
-    @Column(name = "Especialidade_id")
+    @Column(name = "especialidade_id", columnDefinition = "INTEGER UNSIGNED")
     private Integer especialidadeId;
     
     @Override

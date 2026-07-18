@@ -73,6 +73,36 @@ public class AtendimentoController {
         }
     }
 
+    @PutMapping("/{id}/triagem/editar")
+    public ResponseEntity<ApiResponse<AtendimentoResponseDTO>> editarTriagem(
+            @PathVariable Integer id,
+            @RequestBody AtendimentoRequestDTO request,
+            Authentication auth) {
+        try {
+            Integer enfermeiraId = getUserId(auth);
+            AtendimentoResponseDTO response = atendimentoService.editarTriagem(id, request, enfermeiraId);
+            return ResponseEntity.ok(ApiResponse.success(response, "Triagem atualizada com sucesso"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error("Erro ao editar triagem", e.getMessage()));
+        }
+    }
+
+    @PutMapping("/{id}/consulta/editar")
+    public ResponseEntity<ApiResponse<AtendimentoResponseDTO>> editarConsulta(
+            @PathVariable Integer id,
+            @RequestBody AtendimentoRequestDTO request,
+            Authentication auth) {
+        try {
+            Integer medicoId = getUserId(auth);
+            AtendimentoResponseDTO response = atendimentoService.editarConsulta(id, request, medicoId);
+            return ResponseEntity.ok(ApiResponse.success(response, "Consulta atualizada com sucesso"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error("Erro ao editar consulta", e.getMessage()));
+        }
+    }
+
     @PutMapping("/{id}/cancelar")
     public ResponseEntity<ApiResponse<AtendimentoResponseDTO>> cancelar(@PathVariable Integer id) {
         try {

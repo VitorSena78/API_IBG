@@ -115,6 +115,58 @@ public class AtendimentoService {
     }
 
     @Transactional
+    public AtendimentoResponseDTO editarTriagem(Integer atendimentoId, AtendimentoRequestDTO request, Integer enfermeiraId) {
+        Atendimento atendimento = atendimentoRepository.findById(atendimentoId)
+                .orElseThrow(() -> new RuntimeException("Atendimento não encontrado"));
+
+        if (atendimento.getStatus() == Atendimento.StatusAtendimento.AGUARDANDO_TRIAGEM) {
+            throw new RuntimeException("Paciente ainda não foi triado");
+        }
+
+        Usuario enfermeira = usuarioRepository.findById(enfermeiraId)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+        atendimento.setPaXMmhg(request.getPaXMmhg());
+        atendimento.setFcBpm(request.getFcBpm());
+        atendimento.setFrIbpm(request.getFrIbpm());
+        atendimento.setTemperaturaC(request.getTemperaturaC());
+        atendimento.setHgtMgld(request.getHgtMgld());
+        atendimento.setSpo2(request.getSpo2());
+        atendimento.setPeso(request.getPeso());
+        atendimento.setAltura(request.getAltura());
+        atendimento.setImc(request.getImc());
+        atendimento.setObservacoesEnfermagem(request.getObservacoesEnfermagem());
+        atendimento.setEnfermeira(enfermeira);
+        atendimento.setTriagemRealizadaEm(LocalDateTime.now());
+
+        atendimento = atendimentoRepository.save(atendimento);
+        return toDTO(atendimento);
+    }
+
+    @Transactional
+    public AtendimentoResponseDTO editarConsulta(Integer atendimentoId, AtendimentoRequestDTO request, Integer medicoId) {
+        Atendimento atendimento = atendimentoRepository.findById(atendimentoId)
+                .orElseThrow(() -> new RuntimeException("Atendimento não encontrado"));
+
+        if (atendimento.getStatus() != Atendimento.StatusAtendimento.FINALIZADO) {
+            throw new RuntimeException("Consulta ainda não foi finalizada");
+        }
+
+        Usuario medico = usuarioRepository.findById(medicoId)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+        atendimento.setAvaliacaoMedica(request.getAvaliacaoMedica());
+        atendimento.setDiagnostico(request.getDiagnostico());
+        atendimento.setCondutas(request.getCondutas());
+        atendimento.setObservacoesMedicas(request.getObservacoesMedicas());
+        atendimento.setMedico(medico);
+        atendimento.setConsultaRealizadaEm(LocalDateTime.now());
+
+        atendimento = atendimentoRepository.save(atendimento);
+        return toDTO(atendimento);
+    }
+
+    @Transactional
     public AtendimentoResponseDTO cancelarAtendimento(Integer atendimentoId) {
         Atendimento atendimento = atendimentoRepository.findById(atendimentoId)
                 .orElseThrow(() -> new RuntimeException("Atendimento não encontrado"));

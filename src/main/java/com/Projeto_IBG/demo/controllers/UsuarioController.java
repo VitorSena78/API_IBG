@@ -3,7 +3,9 @@ package com.Projeto_IBG.demo.controllers;
 import com.Projeto_IBG.demo.dto.ApiResponse;
 import com.Projeto_IBG.demo.dto.UsuarioRequestDTO;
 import com.Projeto_IBG.demo.dto.UsuarioResponseDTO;
+import com.Projeto_IBG.demo.model.Especialidade;
 import com.Projeto_IBG.demo.model.Usuario;
+import com.Projeto_IBG.demo.repositories.EspecialidadeRepository;
 import com.Projeto_IBG.demo.repositories.UsuarioRepository;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -19,26 +21,36 @@ import java.util.stream.Collectors;
 public class UsuarioController {
 
     private final UsuarioRepository usuarioRepository;
+    private final EspecialidadeRepository especialidadeRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public UsuarioController(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder) {
+    public UsuarioController(UsuarioRepository usuarioRepository,
+                             EspecialidadeRepository especialidadeRepository,
+                             PasswordEncoder passwordEncoder) {
         this.usuarioRepository = usuarioRepository;
+        this.especialidadeRepository = especialidadeRepository;
         this.passwordEncoder = passwordEncoder;
+    }
+
+    private UsuarioResponseDTO toDTO(Usuario u) {
+        UsuarioResponseDTO dto = new UsuarioResponseDTO();
+        dto.setId(u.getId());
+        dto.setNome(u.getNome());
+        dto.setEmail(u.getEmail());
+        dto.setRole(u.getRole().name());
+        dto.setAtivo(u.getAtivo());
+        if (u.getEspecialidade() != null) {
+            dto.setEspecialidadeId(u.getEspecialidade().getId());
+            dto.setEspecialidadeNome(u.getEspecialidade().getNome());
+        }
+        return dto;
     }
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<UsuarioResponseDTO>>> listarTodos() {
         try {
             List<UsuarioResponseDTO> usuarios = usuarioRepository.findAll().stream()
-                .map(u -> {
-                    UsuarioResponseDTO dto = new UsuarioResponseDTO();
-                    dto.setId(u.getId());
-                    dto.setNome(u.getNome());
-                    dto.setEmail(u.getEmail());
-                    dto.setRole(u.getRole().name());
-                    dto.setAtivo(u.getAtivo());
-                    return dto;
-                })
+                .map(this::toDTO)
                 .collect(Collectors.toList());
             return ResponseEntity.ok(ApiResponse.success(usuarios, "Usuários encontrados"));
         } catch (Exception e) {
@@ -52,13 +64,7 @@ public class UsuarioController {
         try {
             Usuario u = usuarioRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
-            UsuarioResponseDTO dto = new UsuarioResponseDTO();
-            dto.setId(u.getId());
-            dto.setNome(u.getNome());
-            dto.setEmail(u.getEmail());
-            dto.setRole(u.getRole().name());
-            dto.setAtivo(u.getAtivo());
-            return ResponseEntity.ok(ApiResponse.success(dto, "Usuário encontrado"));
+            return ResponseEntity.ok(ApiResponse.success(toDTO(u), "Usuário encontrado"));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(ApiResponse.error("Usuário não encontrado", e.getMessage()));
@@ -78,15 +84,14 @@ public class UsuarioController {
             usuario.setSenha(passwordEncoder.encode(request.getSenha()));
             usuario.setRole(Usuario.Role.valueOf(request.getRole()));
             usuario.setAtivo(true);
+            if (request.getEspecialidadeId() != null) {
+                Especialidade esp = especialidadeRepository.findById(request.getEspecialidadeId())
+                    .orElseThrow(() -> new RuntimeException("Especialidade não encontrada"));
+                usuario.setEspecialidade(esp);
+            }
             Usuario saved = usuarioRepository.save(usuario);
-            UsuarioResponseDTO dto = new UsuarioResponseDTO();
-            dto.setId(saved.getId());
-            dto.setNome(saved.getNome());
-            dto.setEmail(saved.getEmail());
-            dto.setRole(saved.getRole().name());
-            dto.setAtivo(saved.getAtivo());
             return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success(dto, "Usuário criado com sucesso"));
+                .body(ApiResponse.success(toDTO(saved), "Usuário criado com sucesso"));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponse.error("Erro ao criar usuário", e.getMessage()));
@@ -106,14 +111,15 @@ public class UsuarioController {
                 usuario.setSenha(passwordEncoder.encode(request.getSenha()));
             }
             usuario.setRole(Usuario.Role.valueOf(request.getRole()));
+            if (request.getEspecialidadeId() != null) {
+                Especialidade esp = especialidadeRepository.findById(request.getEspecialidadeId())
+                    .orElseThrow(() -> new RuntimeException("Especialidade não encontrada"));
+                usuario.setEspecialidade(esp);
+            } else {
+                usuario.setEspecialidade(null);
+            }
             Usuario saved = usuarioRepository.save(usuario);
-            UsuarioResponseDTO dto = new UsuarioResponseDTO();
-            dto.setId(saved.getId());
-            dto.setNome(saved.getNome());
-            dto.setEmail(saved.getEmail());
-            dto.setRole(saved.getRole().name());
-            dto.setAtivo(saved.getAtivo());
-            return ResponseEntity.ok(ApiResponse.success(dto, "Usuário atualizado"));
+            return ResponseEntity.ok(ApiResponse.success(toDTO(saved), "Usuário atualizado"));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponse.error("Erro ao atualizar usuário", e.getMessage()));
@@ -138,13 +144,7 @@ public class UsuarioController {
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
             usuario.setAtivo(!usuario.getAtivo());
             Usuario saved = usuarioRepository.save(usuario);
-            UsuarioResponseDTO dto = new UsuarioResponseDTO();
-            dto.setId(saved.getId());
-            dto.setNome(saved.getNome());
-            dto.setEmail(saved.getEmail());
-            dto.setRole(saved.getRole().name());
-            dto.setAtivo(saved.getAtivo());
-            return ResponseEntity.ok(ApiResponse.success(dto, "Status do usuário alterado"));
+            return ResponseEntity.ok(ApiResponse.success(toDTO(saved), "Status do usuário alterado"));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponse.error("Erro ao alterar status", e.getMessage()));

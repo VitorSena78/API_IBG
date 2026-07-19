@@ -180,17 +180,24 @@ public class AtendimentoService {
         return toDTO(atendimento);
     }
 
-    public List<AtendimentoResponseDTO> listarPorStatus(String status) {
+    public List<AtendimentoResponseDTO> listarPorStatus(String status, Integer especialidadeId) {
         List<Atendimento> atendimentos;
+        List<Atendimento.StatusAtendimento> statuses;
+
         if (status == null || status.isEmpty()) {
-            atendimentos = atendimentoRepository.findByStatusIn(List.of(
+            statuses = List.of(
                     Atendimento.StatusAtendimento.AGUARDANDO_TRIAGEM,
                     Atendimento.StatusAtendimento.EM_TRIAGEM,
                     Atendimento.StatusAtendimento.AGUARDANDO_CONSULTA,
-                    Atendimento.StatusAtendimento.EM_CONSULTA));
+                    Atendimento.StatusAtendimento.EM_CONSULTA);
         } else {
-            atendimentos = atendimentoRepository.findByStatusOrderByCreatedAtAsc(
-                    Atendimento.StatusAtendimento.valueOf(status));
+            statuses = List.of(Atendimento.StatusAtendimento.valueOf(status));
+        }
+
+        if (especialidadeId != null) {
+            atendimentos = atendimentoRepository.findByStatusInAndEspecialidadeId(statuses, especialidadeId);
+        } else {
+            atendimentos = atendimentoRepository.findByStatusIn(statuses);
         }
         return atendimentos.stream().map(this::toDTO).collect(Collectors.toList());
     }

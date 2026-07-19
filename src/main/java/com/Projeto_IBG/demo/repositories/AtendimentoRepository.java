@@ -30,6 +30,14 @@ public interface AtendimentoRepository extends JpaRepository<Atendimento, Intege
     @Query("SELECT a FROM Atendimento a WHERE a.status IN :statuses ORDER BY a.createdAt ASC")
     List<Atendimento> findByStatusIn(@Param("statuses") List<StatusAtendimento> statuses);
 
+    List<Atendimento> findByStatusAndEspecialidadeIdOrderByCreatedAtAsc(
+            StatusAtendimento status, Integer especialidadeId);
+
+    @Query("SELECT a FROM Atendimento a WHERE a.status IN :statuses AND a.especialidade.id = :especialidadeId ORDER BY a.createdAt ASC")
+    List<Atendimento> findByStatusInAndEspecialidadeId(
+            @Param("statuses") List<StatusAtendimento> statuses,
+            @Param("especialidadeId") Integer especialidadeId);
+
     @Query("SELECT a.especialidade.nome, COUNT(a) FROM Atendimento a WHERE a.dataAtendimento = :data GROUP BY a.especialidade.nome")
     List<Object[]> countByEspecialidade(@Param("data") LocalDate data);
 

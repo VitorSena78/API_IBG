@@ -116,9 +116,10 @@ public class AtendimentoController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<AtendimentoResponseDTO>>> listar(
-            @RequestParam(required = false) String status) {
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) Integer especialidadeId) {
         try {
-            List<AtendimentoResponseDTO> lista = atendimentoService.listarPorStatus(status);
+            List<AtendimentoResponseDTO> lista = atendimentoService.listarPorStatus(status, especialidadeId);
             return ResponseEntity.ok(ApiResponse.success(lista, "Lista de atendimentos"));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

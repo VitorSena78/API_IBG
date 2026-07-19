@@ -13,4 +13,5 @@ public class UsuarioRequestDTO {
     private String senha;
     @NotBlank
     private String role;
+    private Integer especialidadeId;
 }

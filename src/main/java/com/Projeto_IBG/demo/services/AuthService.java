@@ -37,8 +37,11 @@ public class AuthService {
 
         String token = jwtUtil.generateToken(usuario.getEmail(), usuario.getRole().name(), usuario.getId());
 
+        Integer espId = usuario.getEspecialidade() != null ? usuario.getEspecialidade().getId() : null;
+        String espNome = usuario.getEspecialidade() != null ? usuario.getEspecialidade().getNome() : null;
+
         return new LoginResponseDTO(token, "Bearer", usuario.getId(), usuario.getNome(),
-                usuario.getEmail(), usuario.getRole().name());
+                usuario.getEmail(), usuario.getRole().name(), espId, espNome);
     }
 
     public Usuario criarUsuario(Usuario usuario) {

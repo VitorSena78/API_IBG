@@ -9,4 +9,6 @@ public class UsuarioResponseDTO {
     private String email;
     private String role;
     private Boolean ativo;
+    private Integer especialidadeId;
+    private String especialidadeNome;
 }

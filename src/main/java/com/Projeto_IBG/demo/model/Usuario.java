@@ -34,6 +34,10 @@ public class Usuario {
     @Column(nullable = false)
     private Boolean ativo = true;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "especialidade_id")
+    private Especialidade especialidade;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 

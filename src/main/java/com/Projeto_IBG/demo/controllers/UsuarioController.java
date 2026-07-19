@@ -13,6 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -39,11 +41,24 @@ public class UsuarioController {
         dto.setEmail(u.getEmail());
         dto.setRole(u.getRole().name());
         dto.setAtivo(u.getAtivo());
-        if (u.getEspecialidade() != null) {
-            dto.setEspecialidadeId(u.getEspecialidade().getId());
-            dto.setEspecialidadeNome(u.getEspecialidade().getNome());
+        if (u.getEspecialidades() != null) {
+            dto.setEspecialidades(
+                u.getEspecialidades().stream()
+                    .map(esp -> new UsuarioResponseDTO.EspecialidadeInfo(esp.getId(), esp.getNome()))
+                    .collect(Collectors.toList())
+            );
+        } else {
+            dto.setEspecialidades(Collections.emptyList());
         }
         return dto;
+    }
+
+    private List<Especialidade> resolveEspecialidades(List<Integer> ids) {
+        if (ids == null || ids.isEmpty()) return new ArrayList<>();
+        return ids.stream()
+            .map(id -> especialidadeRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Especialidade não encontrada: " + id)))
+            .collect(Collectors.toList());
     }
 
     @GetMapping
@@ -84,11 +99,7 @@ public class UsuarioController {
             usuario.setSenha(passwordEncoder.encode(request.getSenha()));
             usuario.setRole(Usuario.Role.valueOf(request.getRole()));
             usuario.setAtivo(true);
-            if (request.getEspecialidadeId() != null) {
-                Especialidade esp = especialidadeRepository.findById(request.getEspecialidadeId())
-                    .orElseThrow(() -> new RuntimeException("Especialidade não encontrada"));
-                usuario.setEspecialidade(esp);
-            }
+            usuario.setEspecialidades(resolveEspecialidades(request.getEspecialidadeIds()));
             Usuario saved = usuarioRepository.save(usuario);
             return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(toDTO(saved), "Usuário criado com sucesso"));
@@ -111,13 +122,7 @@ public class UsuarioController {
                 usuario.setSenha(passwordEncoder.encode(request.getSenha()));
             }
             usuario.setRole(Usuario.Role.valueOf(request.getRole()));
-            if (request.getEspecialidadeId() != null) {
-                Especialidade esp = especialidadeRepository.findById(request.getEspecialidadeId())
-                    .orElseThrow(() -> new RuntimeException("Especialidade não encontrada"));
-                usuario.setEspecialidade(esp);
-            } else {
-                usuario.setEspecialidade(null);
-            }
+            usuario.setEspecialidades(resolveEspecialidades(request.getEspecialidadeIds()));
             Usuario saved = usuarioRepository.save(usuario);
             return ResponseEntity.ok(ApiResponse.success(toDTO(saved), "Usuário atualizado"));
         } catch (Exception e) {

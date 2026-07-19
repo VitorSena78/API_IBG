@@ -1,6 +1,7 @@
 package com.Projeto_IBG.demo.dto;
 
 import lombok.Data;
+import java.util.List;
 
 @Data
 public class UsuarioResponseDTO {
@@ -9,6 +10,12 @@ public class UsuarioResponseDTO {
     private String email;
     private String role;
     private Boolean ativo;
-    private Integer especialidadeId;
-    private String especialidadeNome;
+    private List<EspecialidadeInfo> especialidades;
+
+    @Data
+    @lombok.AllArgsConstructor
+    public static class EspecialidadeInfo {
+        private Integer id;
+        private String nome;
+    }
 }

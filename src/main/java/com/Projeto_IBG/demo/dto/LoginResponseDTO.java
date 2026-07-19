@@ -2,6 +2,7 @@ package com.Projeto_IBG.demo.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -12,6 +13,12 @@ public class LoginResponseDTO {
     private String nome;
     private String email;
     private String role;
-    private Integer especialidadeId;
-    private String especialidadeNome;
+    private List<EspecialidadeInfo> especialidades;
+
+    @Data
+    @AllArgsConstructor
+    public static class EspecialidadeInfo {
+        private Integer id;
+        private String nome;
+    }
 }

@@ -2,6 +2,7 @@ package com.Projeto_IBG.demo.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
+import java.util.List;
 
 @Data
 public class UsuarioRequestDTO {
@@ -13,5 +14,5 @@ public class UsuarioRequestDTO {
     private String senha;
     @NotBlank
     private String role;
-    private Integer especialidadeId;
+    private List<Integer> especialidadeIds;
 }

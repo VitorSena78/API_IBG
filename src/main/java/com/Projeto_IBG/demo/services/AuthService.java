@@ -10,6 +10,10 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 public class AuthService {
 
@@ -37,11 +41,17 @@ public class AuthService {
 
         String token = jwtUtil.generateToken(usuario.getEmail(), usuario.getRole().name(), usuario.getId());
 
-        Integer espId = usuario.getEspecialidade() != null ? usuario.getEspecialidade().getId() : null;
-        String espNome = usuario.getEspecialidade() != null ? usuario.getEspecialidade().getNome() : null;
+        List<LoginResponseDTO.EspecialidadeInfo> especialidades;
+        if (usuario.getEspecialidades() != null) {
+            especialidades = usuario.getEspecialidades().stream()
+                .map(esp -> new LoginResponseDTO.EspecialidadeInfo(esp.getId(), esp.getNome()))
+                .collect(Collectors.toList());
+        } else {
+            especialidades = Collections.emptyList();
+        }
 
         return new LoginResponseDTO(token, "Bearer", usuario.getId(), usuario.getNome(),
-                usuario.getEmail(), usuario.getRole().name(), espId, espNome);
+                usuario.getEmail(), usuario.getRole().name(), especialidades);
     }
 
     public Usuario criarUsuario(Usuario usuario) {

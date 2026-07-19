@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "usuarios")
@@ -34,9 +35,13 @@ public class Usuario {
     @Column(nullable = false)
     private Boolean ativo = true;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "especialidade_id")
-    private Especialidade especialidade;
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "usuario_especialidade",
+        joinColumns = @JoinColumn(name = "usuario_id"),
+        inverseJoinColumns = @JoinColumn(name = "especialidade_id")
+    )
+    private List<Especialidade> especialidades;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;

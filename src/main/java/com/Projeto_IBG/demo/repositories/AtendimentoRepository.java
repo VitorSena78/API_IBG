@@ -38,6 +38,10 @@ public interface AtendimentoRepository extends JpaRepository<Atendimento, Intege
             @Param("statuses") List<StatusAtendimento> statuses,
             @Param("especialidadeId") Integer especialidadeId);
 
+    List<Atendimento> findByPacienteIdAndStatusOrderByCreatedAtAsc(Integer pacienteId, StatusAtendimento status);
+
+    List<Atendimento> findByPacienteIdAndStatusInOrderByCreatedAtAsc(Integer pacienteId, List<StatusAtendimento> statuses);
+
     @Query("SELECT a.especialidade.nome, COUNT(a) FROM Atendimento a WHERE a.dataAtendimento = :data GROUP BY a.especialidade.nome")
     List<Object[]> countByEspecialidade(@Param("data") LocalDate data);
 

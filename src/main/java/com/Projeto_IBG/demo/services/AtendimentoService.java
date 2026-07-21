@@ -71,22 +71,41 @@ public class AtendimentoService {
         Usuario enfermeira = usuarioRepository.findById(enfermeiraId)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
-        atendimento.setPaXMmhg(request.getPaXMmhg());
-        atendimento.setFcBpm(request.getFcBpm());
-        atendimento.setFrIbpm(request.getFrIbpm());
-        atendimento.setTemperaturaC(request.getTemperaturaC());
-        atendimento.setHgtMgld(request.getHgtMgld());
-        atendimento.setSpo2(request.getSpo2());
-        atendimento.setPeso(request.getPeso());
-        atendimento.setAltura(request.getAltura());
-        atendimento.setImc(request.getImc());
-        atendimento.setObservacoesEnfermagem(request.getObservacoesEnfermagem());
-        atendimento.setEnfermeira(enfermeira);
-        atendimento.setTriagemRealizadaEm(LocalDateTime.now());
-        atendimento.setStatus(Atendimento.StatusAtendimento.AGUARDANDO_CONSULTA);
+        Integer pacienteId = atendimento.getPaciente().getId();
 
-        atendimento = atendimentoRepository.save(atendimento);
+        // Aplica os dados de triagem ao atendimento atual
+        aplicarDadosTriagem(atendimento, request, enfermeira);
+        atendimento.setStatus(Atendimento.StatusAtendimento.AGUARDANDO_CONSULTA);
+        atendimentoRepository.save(atendimento);
+
+        // Propaga os mesmos dados para todos os outros atendimentos do mesmo
+        // paciente que ainda estão AGUARDANDO_TRIAGEM (mesmo dia)
+        List<Atendimento> outros = atendimentoRepository
+                .findByPacienteIdAndStatusOrderByCreatedAtAsc(pacienteId,
+                        Atendimento.StatusAtendimento.AGUARDANDO_TRIAGEM);
+        for (Atendimento outro : outros) {
+            if (outro.getId().equals(atendimentoId)) continue;
+            aplicarDadosTriagem(outro, request, enfermeira);
+            outro.setStatus(Atendimento.StatusAtendimento.AGUARDANDO_CONSULTA);
+            atendimentoRepository.save(outro);
+        }
+
         return toDTO(atendimento);
+    }
+
+    private void aplicarDadosTriagem(Atendimento a, AtendimentoRequestDTO r, Usuario enfermeira) {
+        a.setPaXMmhg(r.getPaXMmhg());
+        a.setFcBpm(r.getFcBpm());
+        a.setFrIbpm(r.getFrIbpm());
+        a.setTemperaturaC(r.getTemperaturaC());
+        a.setHgtMgld(r.getHgtMgld());
+        a.setSpo2(r.getSpo2());
+        a.setPeso(r.getPeso());
+        a.setAltura(r.getAltura());
+        a.setImc(r.getImc());
+        a.setObservacoesEnfermagem(r.getObservacoesEnfermagem());
+        a.setEnfermeira(enfermeira);
+        a.setTriagemRealizadaEm(LocalDateTime.now());
     }
 
     @Transactional
@@ -126,20 +145,24 @@ public class AtendimentoService {
         Usuario enfermeira = usuarioRepository.findById(enfermeiraId)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
-        atendimento.setPaXMmhg(request.getPaXMmhg());
-        atendimento.setFcBpm(request.getFcBpm());
-        atendimento.setFrIbpm(request.getFrIbpm());
-        atendimento.setTemperaturaC(request.getTemperaturaC());
-        atendimento.setHgtMgld(request.getHgtMgld());
-        atendimento.setSpo2(request.getSpo2());
-        atendimento.setPeso(request.getPeso());
-        atendimento.setAltura(request.getAltura());
-        atendimento.setImc(request.getImc());
-        atendimento.setObservacoesEnfermagem(request.getObservacoesEnfermagem());
-        atendimento.setEnfermeira(enfermeira);
-        atendimento.setTriagemRealizadaEm(LocalDateTime.now());
+        Integer pacienteId = atendimento.getPaciente().getId();
 
-        atendimento = atendimentoRepository.save(atendimento);
+        aplicarDadosTriagem(atendimento, request, enfermeira);
+        atendimentoRepository.save(atendimento);
+
+        // Propaga edição para todos os atendimentos do mesmo paciente que já
+        // passaram pela triagem (status AGUARDANDO_CONSULTA ou FINALIZADO)
+        List<Atendimento.StatusAtendimento> statuses = List.of(
+                Atendimento.StatusAtendimento.AGUARDANDO_CONSULTA,
+                Atendimento.StatusAtendimento.FINALIZADO);
+        List<Atendimento> outros = atendimentoRepository
+                .findByPacienteIdAndStatusInOrderByCreatedAtAsc(pacienteId, statuses);
+        for (Atendimento outro : outros) {
+            if (outro.getId().equals(atendimentoId)) continue;
+            aplicarDadosTriagem(outro, request, enfermeira);
+            atendimentoRepository.save(outro);
+        }
+
         return toDTO(atendimento);
     }
 

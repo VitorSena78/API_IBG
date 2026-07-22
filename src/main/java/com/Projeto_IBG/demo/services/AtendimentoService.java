@@ -252,7 +252,9 @@ public class AtendimentoService {
                     Atendimento.StatusAtendimento.AGUARDANDO_TRIAGEM,
                     Atendimento.StatusAtendimento.EM_TRIAGEM,
                     Atendimento.StatusAtendimento.AGUARDANDO_CONSULTA,
-                    Atendimento.StatusAtendimento.EM_CONSULTA);
+                    Atendimento.StatusAtendimento.EM_CONSULTA,
+                    Atendimento.StatusAtendimento.FINALIZADO,
+                    Atendimento.StatusAtendimento.CANCELADO);
         } else {
             statuses = List.of(Atendimento.StatusAtendimento.valueOf(status));
         }

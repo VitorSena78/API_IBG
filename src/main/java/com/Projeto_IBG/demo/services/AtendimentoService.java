@@ -12,7 +12,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -121,16 +123,41 @@ public class AtendimentoService {
         Usuario medico = usuarioRepository.findById(medicoId)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
-        atendimento.setAvaliacaoMedica(request.getAvaliacaoMedica());
-        atendimento.setDiagnostico(request.getDiagnostico());
-        atendimento.setCondutas(request.getCondutas());
-        atendimento.setObservacoesMedicas(request.getObservacoesMedicas());
-        atendimento.setMedico(medico);
-        atendimento.setConsultaRealizadaEm(LocalDateTime.now());
-        atendimento.setStatus(Atendimento.StatusAtendimento.FINALIZADO);
+        Integer pacienteId = atendimento.getPaciente().getId();
 
-        atendimento = atendimentoRepository.save(atendimento);
+        aplicarDadosConsulta(atendimento, request, medico);
+        atendimento.setStatus(Atendimento.StatusAtendimento.FINALIZADO);
+        atendimentoRepository.save(atendimento);
+
+        // Propaga para outros atendimentos do mesmo paciente que estão
+        // nas especialidades deste médico e ainda aguardam consulta
+        Set<Integer> espIdsMedico = medico.getEspecialidades() != null
+                ? medico.getEspecialidades().stream().map(Especialidade::getId).collect(Collectors.toSet())
+                : Collections.emptySet();
+
+        List<Atendimento.StatusAtendimento> statuses = List.of(
+                Atendimento.StatusAtendimento.AGUARDANDO_CONSULTA,
+                Atendimento.StatusAtendimento.EM_CONSULTA);
+        List<Atendimento> outros = atendimentoRepository
+                .findByPacienteIdAndStatusInOrderByCreatedAtAsc(pacienteId, statuses);
+        for (Atendimento outro : outros) {
+            if (outro.getId().equals(atendimentoId)) continue;
+            if (!espIdsMedico.contains(outro.getEspecialidade().getId())) continue;
+            aplicarDadosConsulta(outro, request, medico);
+            outro.setStatus(Atendimento.StatusAtendimento.FINALIZADO);
+            atendimentoRepository.save(outro);
+        }
+
         return toDTO(atendimento);
+    }
+
+    private void aplicarDadosConsulta(Atendimento a, AtendimentoRequestDTO r, Usuario medico) {
+        a.setAvaliacaoMedica(r.getAvaliacaoMedica());
+        a.setDiagnostico(r.getDiagnostico());
+        a.setCondutas(r.getCondutas());
+        a.setObservacoesMedicas(r.getObservacoesMedicas());
+        a.setMedico(medico);
+        a.setConsultaRealizadaEm(LocalDateTime.now());
     }
 
     @Transactional
@@ -178,14 +205,27 @@ public class AtendimentoService {
         Usuario medico = usuarioRepository.findById(medicoId)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
-        atendimento.setAvaliacaoMedica(request.getAvaliacaoMedica());
-        atendimento.setDiagnostico(request.getDiagnostico());
-        atendimento.setCondutas(request.getCondutas());
-        atendimento.setObservacoesMedicas(request.getObservacoesMedicas());
-        atendimento.setMedico(medico);
-        atendimento.setConsultaRealizadaEm(LocalDateTime.now());
+        Integer pacienteId = atendimento.getPaciente().getId();
 
-        atendimento = atendimentoRepository.save(atendimento);
+        aplicarDadosConsulta(atendimento, request, medico);
+        atendimentoRepository.save(atendimento);
+
+        // Propaga edição para atendimentos do mesmo paciente que estão nas
+        // especialidades do médico (já finalizados)
+        Set<Integer> espIdsMedico = medico.getEspecialidades() != null
+                ? medico.getEspecialidades().stream().map(Especialidade::getId).collect(Collectors.toSet())
+                : Collections.emptySet();
+
+        List<Atendimento> outros = atendimentoRepository
+                .findByPacienteIdAndStatusOrderByCreatedAtAsc(pacienteId,
+                        Atendimento.StatusAtendimento.FINALIZADO);
+        for (Atendimento outro : outros) {
+            if (outro.getId().equals(atendimentoId)) continue;
+            if (!espIdsMedico.contains(outro.getEspecialidade().getId())) continue;
+            aplicarDadosConsulta(outro, request, medico);
+            atendimentoRepository.save(outro);
+        }
+
         return toDTO(atendimento);
     }
 

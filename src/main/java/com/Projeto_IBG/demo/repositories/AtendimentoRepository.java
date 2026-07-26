@@ -48,4 +48,22 @@ public interface AtendimentoRepository extends JpaRepository<Atendimento, Intege
     @Query("SELECT FUNCTION('YEAR', a.dataAtendimento), FUNCTION('MONTH', a.dataAtendimento), COUNT(a) " +
            "FROM Atendimento a WHERE a.dataAtendimento BETWEEN :inicio AND :fim GROUP BY FUNCTION('YEAR', a.dataAtendimento), FUNCTION('MONTH', a.dataAtendimento)")
     List<Object[]> countByMes(@Param("inicio") LocalDate inicio, @Param("fim") LocalDate fim);
+
+    List<Atendimento> findByMedicoIdAndDataAtendimentoOrderByCreatedAtAsc(Integer medicoId, LocalDate data);
+
+    List<Atendimento> findByEnfermeiraIdAndDataAtendimentoOrderByCreatedAtAsc(Integer enfermeiraId, LocalDate data);
+
+    long countByMedicoIdAndDataAtendimento(Integer medicoId, LocalDate data);
+
+    long countByEnfermeiraIdAndDataAtendimento(Integer enfermeiraId, LocalDate data);
+
+    @Query("SELECT a FROM Atendimento a WHERE a.medico.id = :medicoId AND a.status IN :statuses ORDER BY a.createdAt ASC")
+    List<Atendimento> findByMedicoIdAndStatusIn(
+            @Param("medicoId") Integer medicoId,
+            @Param("statuses") List<StatusAtendimento> statuses);
+
+    @Query("SELECT a FROM Atendimento a WHERE a.enfermeira.id = :enfermeiraId AND a.status IN :statuses ORDER BY a.createdAt ASC")
+    List<Atendimento> findByEnfermeiraIdAndStatusIn(
+            @Param("enfermeiraId") Integer enfermeiraId,
+            @Param("statuses") List<StatusAtendimento> statuses);
 }

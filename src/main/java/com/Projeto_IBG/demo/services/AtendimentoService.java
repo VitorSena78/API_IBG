@@ -12,8 +12,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -241,6 +244,125 @@ public class AtendimentoService {
         atendimento.setStatus(Atendimento.StatusAtendimento.CANCELADO);
         atendimento = atendimentoRepository.save(atendimento);
         return toDTO(atendimento);
+    }
+
+    public List<AtendimentoResponseDTO> listarMeus(Integer userId, String role) {
+        List<Atendimento> atendimentos;
+        LocalDate hoje = LocalDate.now();
+
+        switch (role) {
+            case "MEDICO": {
+                Set<Integer> espIds = getEspecialidadeIds(userId);
+                List<Atendimento.StatusAtendimento> statusesMedico = List.of(
+                        Atendimento.StatusAtendimento.AGUARDANDO_CONSULTA,
+                        Atendimento.StatusAtendimento.EM_CONSULTA,
+                        Atendimento.StatusAtendimento.FINALIZADO);
+                List<Atendimento> meus = atendimentoRepository.findByMedicoIdAndStatusIn(userId, statusesMedico);
+                List<Atendimento> pendentes = new ArrayList<>();
+                if (!espIds.isEmpty()) {
+                    for (Integer espId : espIds) {
+                        pendentes.addAll(atendimentoRepository
+                                .findByStatusAndEspecialidadeIdOrderByCreatedAtAsc(
+                                        Atendimento.StatusAtendimento.AGUARDANDO_CONSULTA, espId));
+                    }
+                }
+                atendimentos = new ArrayList<>();
+                atendimentos.addAll(meus);
+                for (Atendimento a : pendentes) {
+                    if (atendimentos.stream().noneMatch(at -> at.getId().equals(a.getId()))) {
+                        atendimentos.add(a);
+                    }
+                }
+                atendimentos.sort((a, b) -> a.getCreatedAt().compareTo(b.getCreatedAt()));
+                break;
+            }
+            case "ENFERMEIRA": {
+                List<Atendimento> aguardandoTriagem = atendimentoRepository
+                        .findByStatusOrderByCreatedAtAsc(Atendimento.StatusAtendimento.AGUARDANDO_TRIAGEM);
+                List<Atendimento> minhasTriagens = atendimentoRepository
+                        .findByEnfermeiraIdAndDataAtendimentoOrderByCreatedAtAsc(userId, hoje);
+                atendimentos = new ArrayList<>();
+                atendimentos.addAll(aguardandoTriagem);
+                for (Atendimento a : minhasTriagens) {
+                    if (atendimentos.stream().noneMatch(at -> at.getId().equals(a.getId()))) {
+                        atendimentos.add(a);
+                    }
+                }
+                atendimentos.sort((a, b) -> a.getCreatedAt().compareTo(b.getCreatedAt()));
+                break;
+            }
+            case "RECEPCIONISTA":
+                atendimentos = atendimentoRepository.findByDataAtendimentoOrderByCreatedAtAsc(hoje);
+                break;
+            default:
+                atendimentos = atendimentoRepository.findByStatusIn(List.of(Atendimento.StatusAtendimento.values()));
+                break;
+        }
+
+        return atendimentos.stream().map(this::toDTO).collect(Collectors.toList());
+    }
+
+    public Map<String, Object> resumoMeu(Integer userId, String role) {
+        Map<String, Object> resumo = new LinkedHashMap<>();
+        LocalDate hoje = LocalDate.now();
+
+        long totalHoje = atendimentoRepository.countByDataAtendimento(hoje);
+        long aguardandoTriagem = atendimentoRepository.countByStatus(Atendimento.StatusAtendimento.AGUARDANDO_TRIAGEM);
+        long aguardandoConsulta = atendimentoRepository.countByStatus(Atendimento.StatusAtendimento.AGUARDANDO_CONSULTA);
+        long emAtendimento = atendimentoRepository.countByStatus(Atendimento.StatusAtendimento.EM_CONSULTA);
+
+        resumo.put("total_hoje", totalHoje);
+        resumo.put("aguardando_triagem", aguardandoTriagem);
+        resumo.put("aguardando_consulta", aguardandoConsulta);
+        resumo.put("em_atendimento", emAtendimento);
+
+        switch (role) {
+            case "MEDICO": {
+                Set<Integer> espIds = getEspecialidadeIds(userId);
+                long meusFinalizadosHoje = atendimentoRepository
+                        .findByMedicoIdAndDataAtendimentoOrderByCreatedAtAsc(userId, hoje)
+                        .stream().filter(a -> a.getStatus() == Atendimento.StatusAtendimento.FINALIZADO).count();
+                long minhasPendentes = 0;
+                if (!espIds.isEmpty()) {
+                    for (Integer espId : espIds) {
+                        minhasPendentes += atendimentoRepository
+                                .findByStatusAndEspecialidadeIdOrderByCreatedAtAsc(
+                                        Atendimento.StatusAtendimento.AGUARDANDO_CONSULTA, espId)
+                                .size();
+                    }
+                }
+                resumo.put("meus_finalizados_hoje", meusFinalizadosHoje);
+                resumo.put("minhas_pendentes", minhasPendentes);
+                break;
+            }
+            case "ENFERMEIRA": {
+                long minhasTriagensHoje = atendimentoRepository
+                        .countByEnfermeiraIdAndDataAtendimento(userId, hoje);
+                resumo.put("minhas_triagens_hoje", minhasTriagensHoje);
+                break;
+            }
+            case "RECEPCIONISTA": {
+                long meusRegistrosHoje = atendimentoRepository
+                        .findByDataAtendimentoOrderByCreatedAtAsc(hoje).size();
+                resumo.put("meus_registros_hoje", meusRegistrosHoje);
+                break;
+            }
+        }
+
+        return resumo;
+    }
+
+    private Set<Integer> getEspecialidadeIds(Integer userId) {
+        java.util.Optional<Usuario> opt = usuarioRepository.findById(userId);
+        if (opt.isPresent()) {
+            Usuario u = opt.get();
+            if (u.getEspecialidades() != null) {
+                return u.getEspecialidades().stream()
+                        .map(esp -> esp.getId())
+                        .collect(Collectors.toSet());
+            }
+        }
+        return Collections.emptySet();
     }
 
     public List<AtendimentoResponseDTO> listarPorStatus(String status, Integer especialidadeId) {

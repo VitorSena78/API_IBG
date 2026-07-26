@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/atendimentos")
@@ -111,6 +112,32 @@ public class AtendimentoController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponse.error("Erro ao cancelar atendimento", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/meus")
+    public ResponseEntity<ApiResponse<List<AtendimentoResponseDTO>>> meus(Authentication auth) {
+        try {
+            Integer userId = getUserId(auth);
+            String role = ((UserDetailsImpl) auth.getPrincipal()).getRole();
+            List<AtendimentoResponseDTO> lista = atendimentoService.listarMeus(userId, role);
+            return ResponseEntity.ok(ApiResponse.success(lista, "Meus atendimentos"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.error("Erro ao listar meus atendimentos", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/meus/resumo")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> meuResumo(Authentication auth) {
+        try {
+            Integer userId = getUserId(auth);
+            String role = ((UserDetailsImpl) auth.getPrincipal()).getRole();
+            Map<String, Object> resumo = atendimentoService.resumoMeu(userId, role);
+            return ResponseEntity.ok(ApiResponse.success(resumo, "Meu resumo"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.error("Erro ao gerar resumo", e.getMessage()));
         }
     }
 

@@ -42,14 +42,15 @@ public class PacienteService {
     
     public Paciente save(Paciente paciente) {
         // Validações de negócio
-        if (paciente.getCpf() != null && pacienteRepository.existsByCpf(paciente.getCpf())) {
+        if (paciente.getCpf() != null && !paciente.getCpf().isBlank() && pacienteRepository.existsByCpf(paciente.getCpf())) {
             throw new BusinessException("CPF já cadastrado: " + paciente.getCpf());
         }
         
-        if (paciente.getSus() != null && pacienteRepository.existsBySus(paciente.getSus())) {
+        if (paciente.getSus() != null && !paciente.getSus().isBlank() && pacienteRepository.existsBySus(paciente.getSus())) {
             throw new BusinessException("SUS já cadastrado: " + paciente.getSus());
         }
         
+        calcularIdade(paciente);
         return pacienteRepository.save(paciente);
     }
     
@@ -70,17 +71,37 @@ public class PacienteService {
             throw new BusinessException("SUS já cadastrado: " + pacienteAtualizado.getSus());
         }
         
-        // Atualizar campos
-        pacienteExistente.setNome(pacienteAtualizado.getNome());
-        pacienteExistente.setDataNascimento(pacienteAtualizado.getDataNascimento());
-        pacienteExistente.setIdade(pacienteAtualizado.getIdade());
-        pacienteExistente.setNomeDaMae(pacienteAtualizado.getNomeDaMae());
-        pacienteExistente.setCpf(pacienteAtualizado.getCpf());
-        pacienteExistente.setSus(pacienteAtualizado.getSus());
-        pacienteExistente.setTelefone(pacienteAtualizado.getTelefone());
-        pacienteExistente.setEndereco(pacienteAtualizado.getEndereco());
+        // Atualizar apenas os campos informados (evita apagar dados em payloads parciais)
+        if (pacienteAtualizado.getNome() != null) {
+            pacienteExistente.setNome(pacienteAtualizado.getNome());
+        }
+        if (pacienteAtualizado.getDataNascimento() != null) {
+            pacienteExistente.setDataNascimento(pacienteAtualizado.getDataNascimento());
+        }
+        if (pacienteAtualizado.getNomeDaMae() != null) {
+            pacienteExistente.setNomeDaMae(pacienteAtualizado.getNomeDaMae());
+        }
+        if (pacienteAtualizado.getCpf() != null) {
+            pacienteExistente.setCpf(pacienteAtualizado.getCpf());
+        }
+        if (pacienteAtualizado.getSus() != null) {
+            pacienteExistente.setSus(pacienteAtualizado.getSus());
+        }
+        if (pacienteAtualizado.getTelefone() != null) {
+            pacienteExistente.setTelefone(pacienteAtualizado.getTelefone());
+        }
+        if (pacienteAtualizado.getEndereco() != null) {
+            pacienteExistente.setEndereco(pacienteAtualizado.getEndereco());
+        }
         
+        calcularIdade(pacienteExistente);
         return pacienteRepository.save(pacienteExistente);
+    }
+
+    private void calcularIdade(Paciente paciente) {
+        if (paciente.getDataNascimento() != null) {
+            paciente.setIdade(java.time.Period.between(paciente.getDataNascimento(), LocalDate.now()).getYears());
+        }
     }
     
     public void delete(Integer id) {

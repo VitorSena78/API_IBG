@@ -2,6 +2,7 @@ package com.Projeto_IBG.demo.dto;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -21,14 +22,16 @@ public class PacienteDTO {
     @JsonProperty("nome")
     private String nome;
 
-    @JsonProperty("data_nascimento")
+    @JsonProperty("dataNascimento")
+    @JsonAlias({"data_nascimento"})
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate dataNascimento;
 
     @JsonProperty("idade")
     private Integer idade;
 
-    @JsonProperty("nome_da_mae")
+    @JsonProperty("nomeDaMae")
+    @JsonAlias({"nome_da_mae"})
     private String nomeDaMae;
 
     @JsonProperty("cpf")
@@ -40,7 +43,8 @@ public class PacienteDTO {
     @JsonProperty("telefone")
     private String telefone;
 
-    @JsonProperty("endereço")
+    @JsonProperty("endereco")
+    @JsonAlias({"endereço"})
     private String endereco;
 
     @JsonProperty("pa_x_mmhg")

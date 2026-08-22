@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -280,7 +281,8 @@ public class AtendimentoService {
                 List<Atendimento> aguardandoTriagem = atendimentoRepository
                         .findByStatusOrderByCreatedAtAsc(Atendimento.StatusAtendimento.AGUARDANDO_TRIAGEM);
                 List<Atendimento> minhasTriagens = atendimentoRepository
-                        .findByEnfermeiraIdAndDataAtendimentoOrderByCreatedAtAsc(userId, hoje);
+                        .findByEnfermeiraIdAndTriagemRealizadaEmBetweenOrderByTriagemRealizadaEmDesc(
+                                userId, hoje.atStartOfDay(), hoje.atTime(LocalTime.MAX));
                 atendimentos = new ArrayList<>();
                 atendimentos.addAll(aguardandoTriagem);
                 for (Atendimento a : minhasTriagens) {
@@ -320,8 +322,8 @@ public class AtendimentoService {
             case "MEDICO": {
                 Set<Integer> espIds = getEspecialidadeIds(userId);
                 long meusFinalizadosHoje = atendimentoRepository
-                        .findByMedicoIdAndDataAtendimentoOrderByCreatedAtAsc(userId, hoje)
-                        .stream().filter(a -> a.getStatus() == Atendimento.StatusAtendimento.FINALIZADO).count();
+                        .countByMedicoIdAndConsultaRealizadaEmBetween(
+                                userId, hoje.atStartOfDay(), hoje.atTime(LocalTime.MAX));
                 long minhasPendentes = 0;
                 if (!espIds.isEmpty()) {
                     for (Integer espId : espIds) {
@@ -337,7 +339,8 @@ public class AtendimentoService {
             }
             case "ENFERMEIRA": {
                 long minhasTriagensHoje = atendimentoRepository
-                        .countByEnfermeiraIdAndDataAtendimento(userId, hoje);
+                        .countByEnfermeiraIdAndTriagemRealizadaEmBetween(
+                                userId, hoje.atStartOfDay(), hoje.atTime(LocalTime.MAX));
                 resumo.put("minhas_triagens_hoje", minhasTriagensHoje);
                 break;
             }

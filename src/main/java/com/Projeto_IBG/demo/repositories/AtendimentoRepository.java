@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -49,13 +50,15 @@ public interface AtendimentoRepository extends JpaRepository<Atendimento, Intege
            "FROM Atendimento a WHERE a.dataAtendimento BETWEEN :inicio AND :fim GROUP BY FUNCTION('YEAR', a.dataAtendimento), FUNCTION('MONTH', a.dataAtendimento)")
     List<Object[]> countByMes(@Param("inicio") LocalDate inicio, @Param("fim") LocalDate fim);
 
-    List<Atendimento> findByMedicoIdAndDataAtendimentoOrderByCreatedAtAsc(Integer medicoId, LocalDate data);
+    long countByEnfermeiraIdAndTriagemRealizadaEmBetween(Integer enfermeiraId, LocalDateTime inicio, LocalDateTime fim);
 
-    List<Atendimento> findByEnfermeiraIdAndDataAtendimentoOrderByCreatedAtAsc(Integer enfermeiraId, LocalDate data);
+    List<Atendimento> findByEnfermeiraIdAndTriagemRealizadaEmBetweenOrderByTriagemRealizadaEmDesc(
+            Integer enfermeiraId, LocalDateTime inicio, LocalDateTime fim);
 
-    long countByMedicoIdAndDataAtendimento(Integer medicoId, LocalDate data);
+    long countByMedicoIdAndConsultaRealizadaEmBetween(Integer medicoId, LocalDateTime inicio, LocalDateTime fim);
 
-    long countByEnfermeiraIdAndDataAtendimento(Integer enfermeiraId, LocalDate data);
+    List<Atendimento> findByMedicoIdAndConsultaRealizadaEmBetweenOrderByConsultaRealizadaEmDesc(
+            Integer medicoId, LocalDateTime inicio, LocalDateTime fim);
 
     @Query("SELECT a FROM Atendimento a WHERE a.medico.id = :medicoId AND a.status IN :statuses ORDER BY a.createdAt ASC")
     List<Atendimento> findByMedicoIdAndStatusIn(

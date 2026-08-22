@@ -1,7 +1,6 @@
 package com.Projeto_IBG.demo.controllers;
 
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -12,8 +11,8 @@ import com.Projeto_IBG.demo.dto.ApiResponse;
 import com.Projeto_IBG.demo.dto.PacienteDTO;
 import com.Projeto_IBG.demo.mappers.PacienteMapper;
 import com.Projeto_IBG.demo.model.Paciente;
+import com.Projeto_IBG.demo.services.NotificationService;
 import com.Projeto_IBG.demo.services.PacienteService;
-import com.Projeto_IBG.demo.websocket.NotificationWebSocketHandler;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -25,17 +24,19 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/pacientes")
-@CrossOrigin(origins = "*")
 public class PacienteController {
     
-    @Autowired
-    private PacienteService pacienteService;
-    
-    @Autowired
-    private PacienteMapper pacienteMapper;
+    private final PacienteService pacienteService;
+    private final PacienteMapper pacienteMapper;
+    private final NotificationService notificationService;
 
-    @Autowired
-    private NotificationWebSocketHandler webSocketHandler;
+    public PacienteController(PacienteService pacienteService,
+                               PacienteMapper pacienteMapper,
+                               NotificationService notificationService) {
+        this.pacienteService = pacienteService;
+        this.pacienteMapper = pacienteMapper;
+        this.notificationService = notificationService;
+    }
     
     // Endpoint paginado - convertendo para DTO
     @GetMapping
@@ -148,8 +149,7 @@ public class PacienteController {
             
             PacienteDTO novoDTO = pacienteMapper.toDTO(novoPaciente);
             
-            // Notificação WebSocket para criação
-            webSocketHandler.notifyPacienteChange("CREATED", novoPaciente.getId(), novoDTO);
+            notificationService.notifyPacienteCreated(novoPaciente.getId(), novoDTO);
             
             return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(novoDTO, "Paciente criado com sucesso"));
@@ -172,13 +172,7 @@ public class PacienteController {
             
             PacienteDTO pacienteDTO_result = pacienteMapper.toDTO(pacienteAtualizado);
             
-            // Notificação WebSocket para atualização
-            try {
-                webSocketHandler.notifyPacienteChange("UPDATED", id, pacienteDTO_result);
-            } catch (Exception notificationError) {
-                // Log do erro mas não falha a operação principal
-                System.err.println("Erro ao enviar notificação WebSocket: " + notificationError.getMessage());
-            }
+            notificationService.notifyPacienteUpdated(id, pacienteDTO_result);
 
             return ResponseEntity.ok(
                 ApiResponse.success(pacienteDTO_result, "Paciente atualizado com sucesso")
@@ -203,8 +197,7 @@ public class PacienteController {
             
             pacienteService.delete(id);
             
-            // Notificação WebSocket para exclusão
-            webSocketHandler.notifyPacienteChange("DELETED", id, pacienteDTO);
+            notificationService.notifyPacienteDeleted(id);
             
             return ResponseEntity.ok(
                 ApiResponse.success("Paciente deletado com sucesso")

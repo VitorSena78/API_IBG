@@ -2,10 +2,8 @@ package com.Projeto_IBG.demo.controllers;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -20,11 +18,13 @@ import com.Projeto_IBG.demo.services.SyncService;
 
 @RestController
 @RequestMapping("/api/sync")
-@CrossOrigin(origins = "*")
 public class SyncController {
     
-    @Autowired
-    private SyncService syncService;
+    private final SyncService syncService;
+
+    public SyncController(SyncService syncService) {
+        this.syncService = syncService;
+    }
     
     @PostMapping("/pacientes")
     public ResponseEntity<SyncResponseDTO> syncPacientes(@RequestBody SyncRequestDTO request) {

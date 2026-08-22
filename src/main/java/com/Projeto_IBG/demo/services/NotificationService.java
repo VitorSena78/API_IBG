@@ -1,6 +1,5 @@
 package com.Projeto_IBG.demo.services;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.Projeto_IBG.demo.websocket.NotificationWebSocketHandler;
 import java.util.List;
@@ -11,8 +10,11 @@ public class NotificationService {
     
     private static final Logger LOGGER = Logger.getLogger(NotificationService.class.getName());
     
-    @Autowired
-    private NotificationWebSocketHandler webSocketHandler;
+    private final NotificationWebSocketHandler webSocketHandler;
+
+    public NotificationService(NotificationWebSocketHandler webSocketHandler) {
+        this.webSocketHandler = webSocketHandler;
+    }
     
     // ================================================================
     // Notificações para Paciente
@@ -83,28 +85,6 @@ public class NotificationService {
         LOGGER.info("Enviando notificação de atualização completa de associações: Paciente " + pacienteId + 
                    " - " + (novasAssociacoes != null ? novasAssociacoes.size() : 0) + " associações");
         webSocketHandler.notifyPacienteEspecialidadeBatch("COMPLETE_UPDATE", pacienteId, novasAssociacoes);
-    }
-    
-    // ================================================================
-    // DEPRECATED: Mantido para compatibilidade
-    // ================================================================
-    
-    @Deprecated
-    public void notifyPacienteEspecialidadeCreated(Integer pacienteId) {
-        LOGGER.warning("DEPRECATED: Use notifyPacienteEspecialidadeCreated(pacienteId, data)");
-        webSocketHandler.notifyPacienteEspecialidadeChange("created", pacienteId);
-    }
-    
-    @Deprecated
-    public void notifyPacienteEspecialidadeUpdated(Integer pacienteId) {
-        LOGGER.warning("DEPRECATED: Use notifyPacienteEspecialidadeUpdated(pacienteId, data)");
-        webSocketHandler.notifyPacienteEspecialidadeChange("updated", pacienteId);
-    }
-    
-    @Deprecated
-    public void notifyPacienteEspecialidadeDeleted(Integer pacienteId) {
-        LOGGER.warning("DEPRECATED: Use notifyPacienteEspecialidadeDeleted(pacienteId, especialidadeId)");
-        webSocketHandler.notifyPacienteEspecialidadeChange("deleted", pacienteId);
     }
     
     // ================================================================

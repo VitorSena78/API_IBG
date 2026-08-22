@@ -1,7 +1,6 @@
 package com.Projeto_IBG.demo.controllers;
 
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,14 +16,16 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/especialidades")
-@CrossOrigin(origins = "*")
 public class EspecialidadeController {
     
-    @Autowired
-    private EspecialidadeService especialidadeService;
-    
-    @Autowired
-    private EspecialidadeMapper especialidadeMapper;
+    private final EspecialidadeService especialidadeService;
+    private final EspecialidadeMapper especialidadeMapper;
+
+    public EspecialidadeController(EspecialidadeService especialidadeService,
+                                    EspecialidadeMapper especialidadeMapper) {
+        this.especialidadeService = especialidadeService;
+        this.especialidadeMapper = especialidadeMapper;
+    }
     
     @GetMapping
     public ResponseEntity<ApiResponse<List<EspecialidadeDTO>>> findAll() {

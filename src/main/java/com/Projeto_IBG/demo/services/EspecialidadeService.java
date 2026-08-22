@@ -1,7 +1,6 @@
 package com.Projeto_IBG.demo.services;
 
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,8 +18,11 @@ import java.util.List;
 @Transactional
 public class EspecialidadeService {
     
-    @Autowired
-    private EspecialidadeRepository especialidadeRepository;
+    private final EspecialidadeRepository especialidadeRepository;
+
+    public EspecialidadeService(EspecialidadeRepository especialidadeRepository) {
+        this.especialidadeRepository = especialidadeRepository;
+    }
     
     public List<Especialidade> findAll() {
         return especialidadeRepository.findAll();

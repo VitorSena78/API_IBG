@@ -1,6 +1,5 @@
 package com.Projeto_IBG.demo.websocket;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -19,7 +18,6 @@ public class NotificationWebSocketHandler implements WebSocketHandler {
     
     private final ObjectMapper objectMapper;
 
-    @Autowired
     public NotificationWebSocketHandler(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
     }

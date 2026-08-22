@@ -1,7 +1,6 @@
 package com.Projeto_IBG.demo.services;
 
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -22,8 +21,11 @@ import java.util.Optional;
 @Transactional
 public class PacienteService {
     
-    @Autowired
-    private PacienteRepository pacienteRepository;
+    private final PacienteRepository pacienteRepository;
+
+    public PacienteService(PacienteRepository pacienteRepository) {
+        this.pacienteRepository = pacienteRepository;
+    }
     
     public List<Paciente> findAll() {
         return pacienteRepository.findAll();

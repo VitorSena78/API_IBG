@@ -1,7 +1,6 @@
 package com.Projeto_IBG.demo.controllers;
 
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -10,9 +9,8 @@ import com.Projeto_IBG.demo.dto.ApiResponse;
 import com.Projeto_IBG.demo.dto.PacienteEspecialidadeDTO;
 import com.Projeto_IBG.demo.mappers.PacienteEspecialidadeMapper;
 import com.Projeto_IBG.demo.model.PacienteEspecialidade;
-import com.Projeto_IBG.demo.repositories.PacienteEspecialidadeRepository;
+import com.Projeto_IBG.demo.services.NotificationService;
 import com.Projeto_IBG.demo.services.PacienteEspecialidadeService;
-import com.Projeto_IBG.demo.websocket.NotificationWebSocketHandler;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -22,24 +20,26 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/paciente_has_especialidade")
-@CrossOrigin(origins = "*")
 public class PacienteEspecialidadeController {
     
-    @Autowired
-    private PacienteEspecialidadeService pacienteEspecialidadeService;
+    private static final Logger LOGGER = Logger.getLogger(PacienteEspecialidadeController.class.getName());
     
-    @Autowired
-    private PacienteEspecialidadeMapper mapper;
+    private final PacienteEspecialidadeService pacienteEspecialidadeService;
+    private final PacienteEspecialidadeMapper mapper;
+    private final NotificationService notificationService;
 
-    @Autowired
-    private PacienteEspecialidadeRepository pacienteEspecialidadeRepository;
-
-    @Autowired
-    private NotificationWebSocketHandler webSocketHandler;
+    public PacienteEspecialidadeController(PacienteEspecialidadeService pacienteEspecialidadeService,
+                                            PacienteEspecialidadeMapper mapper,
+                                            NotificationService notificationService) {
+        this.pacienteEspecialidadeService = pacienteEspecialidadeService;
+        this.mapper = mapper;
+        this.notificationService = notificationService;
+    }
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<PacienteEspecialidadeDTO>>> findAll() {
@@ -95,11 +95,9 @@ public class PacienteEspecialidadeController {
             List<PacienteEspecialidade> associacoes = pacienteEspecialidadeService.findByPaciente(pacienteId);
             int count = associacoes.size();
 
-            // Usar o método do repository que já existe
-            pacienteEspecialidadeRepository.deleteByPacienteId(pacienteId);
+            pacienteEspecialidadeService.deleteAllByPacienteId(pacienteId);
 
-            // Notificar deleção
-            webSocketHandler.notifyPacienteEspecialidadeDeletedBatch(pacienteId);
+            notificationService.notifyPacienteEspecialidadeBatchDeleted(pacienteId, java.util.Collections.emptyList());
 
             return ResponseEntity.ok(
                 ApiResponse.success("Associações removidas",
@@ -216,54 +214,49 @@ public class PacienteEspecialidadeController {
                 try {
                     // VERIFICAR SE É DELEÇÃO
                     if (data.getIsDeleted() != null && data.getIsDeleted()) {
-                        // PROCESSAR DELEÇÃO
-                        System.out.println("Processando DELEÇÃO: Paciente " + data.getPacienteServerId() + 
-                                        " - Especialidade " + data.getEspecialidadeServerId());
-                        
-                        // Deletar o relacionamento
+                        LOGGER.info("Processando DELEÇÃO: Paciente " + data.getPacienteServerId() +
+                                " - Especialidade " + data.getEspecialidadeServerId());
+
                         pacienteEspecialidadeService.delete(
-                            data.getPacienteServerId(), 
+                            data.getPacienteServerId(),
                             data.getEspecialidadeServerId()
                         );
-                        
-                        // Retornar confirmação de deleção
+
                         PacienteEspecialidadeDTO deletedDto = new PacienteEspecialidadeDTO(
                             data.getPacienteServerId(),
                             data.getEspecialidadeServerId(),
                             data.getDataAtendimento(),
-                            true, // isDeleted = true
-                            LocalDateTime.now(), // updatedAt
+                            true,
+                            LocalDateTime.now(),
                             data.getCreatedAt()
                         );
-                        
+
                         processedRecords.add(deletedDto);
-                        
+
                     } else {
-                        // PROCESSAR CRIAÇÃO/ATUALIZAÇÃO (código existente)
-                        System.out.println("Processando CRIAÇÃO: Paciente " + data.getPacienteServerId() + 
-                                        " - Especialidade " + data.getEspecialidadeServerId());
-                        
+                        LOGGER.info("Processando CRIAÇÃO: Paciente " + data.getPacienteServerId() +
+                                " - Especialidade " + data.getEspecialidadeServerId());
+
                         PacienteEspecialidade saved = pacienteEspecialidadeService.save(
-                            data.getPacienteServerId(), 
-                            data.getEspecialidadeServerId(), 
+                            data.getPacienteServerId(),
+                            data.getEspecialidadeServerId(),
                             data.getDataAtendimento()
                         );
-                        
+
                         PacienteEspecialidadeDTO dto = new PacienteEspecialidadeDTO(
                             saved.getId().getPacienteId(),
                             saved.getId().getEspecialidadeId(),
                             saved.getDataAtendimento(),
-                            false, // isDeleted
+                            false,
                             saved.getUpdatedAt(),
                             saved.getCreatedAt()
                         );
-                        
+
                         processedRecords.add(dto);
                     }
-                    
+
                 } catch (Exception e) {
-                    System.err.println("Erro ao processar registro: " + data.toString() + " - " + e.getMessage());
-                    e.printStackTrace();
+                    LOGGER.severe("Erro ao processar registro: " + data + " - " + e.getMessage());
                     // Continue processando os outros registros
                 }
             }
@@ -273,7 +266,7 @@ public class PacienteEspecialidadeController {
             );
             
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.severe("Erro interno ao sincronizar relacionamentos: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiResponse.error("Erro interno ao sincronizar relacionamentos: " + e.getMessage()));
         }
@@ -282,8 +275,7 @@ public class PacienteEspecialidadeController {
     @PostMapping("/batch")
     public ResponseEntity<ApiResponse<List<PacienteEspecialidadeDTO>>> createBatch(@RequestBody List<PacienteEspecialidadeDTO> pacienteEspecialidadeDTOs) {
         try {
-            System.out.println("=== BATCH CREATE DEBUG ===");
-            System.out.println("Recebidos " + pacienteEspecialidadeDTOs.size() + " itens");
+            LOGGER.info("Iniciando batch create com " + pacienteEspecialidadeDTOs.size() + " itens");
             
             List<PacienteEspecialidadeDTO> savedAssociacoes = new ArrayList<>();
             Set<Integer> pacientesAfetados = new HashSet<>();
@@ -292,13 +284,9 @@ public class PacienteEspecialidadeController {
                 PacienteEspecialidadeDTO dto = pacienteEspecialidadeDTOs.get(i);
                 
                 try {
-                    System.out.println("Processando item " + (i+1) + ": " + dto.toString());
-                    
-                    // Determinar IDs corretos - aceitar ambos os formatos
                     Integer pacienteId = null;
                     Integer especialidadeId = null;
                     
-                    // Priorizar os campos *_id, depois os *_server_id
                     if (dto.getPacienteId() != null) {
                         pacienteId = dto.getPacienteId();
                     } else if (dto.getPacienteServerId() != null) {
@@ -312,32 +300,24 @@ public class PacienteEspecialidadeController {
                     }
                     
                     if (pacienteId == null || especialidadeId == null) {
-                        System.err.println("IDs inválidos - pacienteId: " + pacienteId + 
-                                        ", especialidadeId: " + especialidadeId);
+                        LOGGER.warning("IDs inválidos no item " + (i+1) + " - pacienteId: " + pacienteId +
+                                ", especialidadeId: " + especialidadeId);
                         continue;
                     }
                     
-                    System.out.println("Salvando: Paciente " + pacienteId + " - Especialidade " + especialidadeId);
-                    
-                    // Salvar usando o service existente
                     PacienteEspecialidade saved = pacienteEspecialidadeService.save(
                         pacienteId,
                         especialidadeId,
                         dto.getDataAtendimento()
                     );
                     
-                    // Converter de volta para DTO
                     PacienteEspecialidadeDTO savedDTO = mapper.toDTO(saved);
                     savedAssociacoes.add(savedDTO);
                     
-                    // Marcar paciente afetado
                     pacientesAfetados.add(saved.getPaciente().getId());
                     
-                    System.out.println("Salvo com sucesso: " + savedDTO.toString());
-                    
                 } catch (Exception e) {
-                    System.err.println("Erro ao processar item " + (i+1) + ": " + e.getMessage());
-                    e.printStackTrace();
+                    LOGGER.severe("Erro ao processar item " + (i+1) + ": " + e.getMessage());
                     // Continue processando os outros itens
                 }
             }
@@ -345,17 +325,16 @@ public class PacienteEspecialidadeController {
             // Notificar para cada paciente afetado
             for (Integer pacienteId : pacientesAfetados) {
                 try {
-                    // Filtra a lista completa para pegar apenas as associações do paciente atual
-                    List<PacienteEspecialidadeDTO> associacoesDoPaciente = savedAssociacoes.stream().filter(a -> a.getPacienteId().equals(pacienteId) || a.getPacienteServerId().equals(pacienteId)).collect(Collectors.toList());
-                    webSocketHandler.notifyPacienteEspecialidadeCreated(pacienteId, associacoesDoPaciente);
-                    System.out.println("Notificação enviada para paciente: " + pacienteId);
+                    List<PacienteEspecialidadeDTO> associacoesDoPaciente = savedAssociacoes.stream()
+                        .filter(a -> a.getPacienteId().equals(pacienteId) || a.getPacienteServerId().equals(pacienteId))
+                        .collect(Collectors.toList());
+                    notificationService.notifyPacienteEspecialidadeBatchCreated(pacienteId, associacoesDoPaciente);
                 } catch (Exception e) {
-                    System.err.println("Erro ao enviar notificação para paciente " + pacienteId + ": " + e.getMessage());
+                    LOGGER.severe("Erro ao enviar notificação para paciente " + pacienteId + ": " + e.getMessage());
                 }
             }
             
-            System.out.println("=== BATCH CREATE CONCLUÍDO ===");
-            System.out.println("Salvos: " + savedAssociacoes.size() + " de " + pacienteEspecialidadeDTOs.size());
+            LOGGER.info("Batch create concluído: " + savedAssociacoes.size() + " de " + pacienteEspecialidadeDTOs.size());
             
             return ResponseEntity.ok(
                 ApiResponse.success(savedAssociacoes,
@@ -363,8 +342,7 @@ public class PacienteEspecialidadeController {
             );
             
         } catch (Exception e) {
-            System.err.println("Erro geral no batch create: " + e.getMessage());
-            e.printStackTrace();
+            LOGGER.severe("Erro geral no batch create: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiResponse.error("Erro ao criar associações em lote: " + e.getMessage()));
         }

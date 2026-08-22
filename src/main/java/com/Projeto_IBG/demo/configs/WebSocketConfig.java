@@ -5,14 +5,16 @@ import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
 import com.Projeto_IBG.demo.websocket.NotificationWebSocketHandler;
-import org.springframework.beans.factory.annotation.Autowired;
 
 @Configuration
 @EnableWebSocket
 public class WebSocketConfig implements WebSocketConfigurer {
 
-    @Autowired
-    private NotificationWebSocketHandler notificationHandler;
+    private final NotificationWebSocketHandler notificationHandler;
+
+    public WebSocketConfig(NotificationWebSocketHandler notificationHandler) {
+        this.notificationHandler = notificationHandler;
+    }
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {

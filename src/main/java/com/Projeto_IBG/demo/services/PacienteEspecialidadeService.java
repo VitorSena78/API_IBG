@@ -1,7 +1,6 @@
 package com.Projeto_IBG.demo.services;
 
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,17 +20,20 @@ import java.util.stream.Collectors;
 @Transactional
 public class PacienteEspecialidadeService {
     
-    @Autowired
-    private PacienteEspecialidadeRepository pacienteEspecialidadeRepository;
-    
-    @Autowired
-    private PacienteService pacienteService;
-    
-    @Autowired
-    private EspecialidadeService especialidadeService;
-    
-    @Autowired
-private PacienteEspecialidadeMapper mapper;
+    private final PacienteEspecialidadeRepository pacienteEspecialidadeRepository;
+    private final PacienteService pacienteService;
+    private final EspecialidadeService especialidadeService;
+    private final PacienteEspecialidadeMapper mapper;
+
+    public PacienteEspecialidadeService(PacienteEspecialidadeRepository pacienteEspecialidadeRepository,
+                                        PacienteService pacienteService,
+                                        EspecialidadeService especialidadeService,
+                                        PacienteEspecialidadeMapper mapper) {
+        this.pacienteEspecialidadeRepository = pacienteEspecialidadeRepository;
+        this.pacienteService = pacienteService;
+        this.especialidadeService = especialidadeService;
+        this.mapper = mapper;
+    }
 
     public List<PacienteEspecialidade> findAll() {
         return pacienteEspecialidadeRepository.findAll();
@@ -70,6 +72,10 @@ private PacienteEspecialidadeMapper mapper;
     
     public List<PacienteEspecialidade> findByPaciente(Integer pacienteId) {
         return pacienteEspecialidadeRepository.findByPacienteId(pacienteId);
+    }
+
+    public void deleteAllByPacienteId(Integer pacienteId) {
+        pacienteEspecialidadeRepository.deleteByPacienteId(pacienteId);
     }
     
     public List<PacienteEspecialidade> findByEspecialidade(Integer especialidadeId) {

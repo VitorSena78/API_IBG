@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.time.ZoneId;
 
@@ -31,14 +30,17 @@ import jakarta.transaction.Transactional;
 @Transactional
 public class SyncService {
     
-    @Autowired
-    private PacienteRepository pacienteRepository;
-    
-    @Autowired
-    private EspecialidadeRepository especialidadeRepository;
-    
-    @Autowired
-    private PacienteEspecialidadeRepository pacienteEspecialidadeRepository;
+    private final PacienteRepository pacienteRepository;
+    private final EspecialidadeRepository especialidadeRepository;
+    private final PacienteEspecialidadeRepository pacienteEspecialidadeRepository;
+
+    public SyncService(PacienteRepository pacienteRepository,
+                       EspecialidadeRepository especialidadeRepository,
+                       PacienteEspecialidadeRepository pacienteEspecialidadeRepository) {
+        this.pacienteRepository = pacienteRepository;
+        this.especialidadeRepository = especialidadeRepository;
+        this.pacienteEspecialidadeRepository = pacienteEspecialidadeRepository;
+    }
     
     public SyncResponseDTO syncPacientes(SyncRequestDTO request) {
         SyncResponseDTO response = new SyncResponseDTO();

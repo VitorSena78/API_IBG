@@ -37,7 +37,7 @@ public class Usuario {
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
-        name = "usuario_especialidade",
+        name = "usuario_has_especialidade",
         joinColumns = @JoinColumn(name = "usuario_id"),
         inverseJoinColumns = @JoinColumn(name = "especialidade_id")
     )
